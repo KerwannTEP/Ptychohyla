@@ -1,0 +1,5 @@
+import Pkg; Pkg.add("ArgParse")
+import Pkg; Pkg.add("DelimitedFiles")
+import Pkg; Pkg.add("Dates")
+import Pkg; Pkg.add("Plots")
+import Pkg; Pkg.add("LaTeXStrings")
