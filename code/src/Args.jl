@@ -55,10 +55,6 @@ tabargs = ArgParseSettings()
     help = "Softening length"
     arg_type = Float64
     default = 0.001
-    "--path_dir"
-    help = "IC data file in the cluster's frame"
-    arg_type = String
-    default = "/path/to/Ptychohyla/"
 end
 parsed_args = parse_args(tabargs)
 
@@ -69,7 +65,6 @@ const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
-const path_dir = parsed_args["path_dir"]
 
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]

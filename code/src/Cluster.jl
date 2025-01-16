@@ -2,9 +2,8 @@ using DelimitedFiles
 
 function initialize_stars!(tab_stars::Array{Float64})
 
-    # namefile = path_dir*"code/IC_generator/data_IC/plummer_sphere_n_10_q_0.0.txt"
-    # namefile = path_dir*"code/IC_generator/data_IC/plummer_sphere_n_100_q_0.0.txt"
-    namefile = path_dir*"code/IC_generator/data_IC/plummer_sphere_n_1000_q_0.0.txt"
+
+    namefile = path_dir*"code/IC_generator/data_IC/plummer_sphere_n_"*string(Npart)*"_q_"*string(q)*".txt"
     data = readdlm(namefile, header=false)
 
     vcirc = circular_velocity(d_host)

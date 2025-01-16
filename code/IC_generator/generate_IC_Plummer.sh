@@ -5,7 +5,7 @@ Q=0.0
 SEED=0
 
 
-source venv/bin/activate
+source PlummerPlus/venv/bin/activate
 
 ./PlummerPlus/PlummerPlus.py -n ${N} -q ${Q} -rs ${SEED}
 

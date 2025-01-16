@@ -18,7 +18,6 @@ tabargs = ArgParseSettings()
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
     default = 2.00e-2
-
     "--c"
     help = "Concentration parameter of the NFW dark halo profile"
     arg_type = Float64
@@ -31,16 +30,11 @@ tabargs = ArgParseSettings()
     help = "Mass of the dark halo, M200, within a sphere whose mean density is 200 times the critical density of the universe (in solar masses)"
     arg_type = Float64
     default = 0.97e+12
-
     "--framerate"
     help = "Number of frames per second"
     arg_type = Int64
-
     default = 60
-    "--path_dir"
-    help = "Path directory"
-    arg_type = String
-    default = "/Users/tep/Documents/Astro_projects/UNC/Julia_fewbody_integrator/"
+
 end
 parsed_args = parse_args(tabargs)
 
@@ -52,7 +46,9 @@ const M_DH_200_Msun = parsed_args["M_halo_200"]
 const Rs_kpc = parsed_args["Rs_host"]
 
 const framepersec = parsed_args["framerate"]
-const path_dir = parsed_args["path_dir"]
+
+const path_to_script = @__DIR__
+const path_data = path_to_script * "/../../data/"
 
 
 # Conversion HU to astrophysical units
@@ -85,11 +81,11 @@ end
 
 function plot_data()
 
-    if (isfile(path_dir*"snapshots/.DS_Store"))
-        rm(path_dir*"snapshots/.DS_Store")
+    if (isfile(path_data*"snapshots/.DS_Store"))
+        rm(path_data*"snapshots/.DS_Store")
     end
 
-    listFile = readdir(path_dir*"data/snapshots/";join=true)
+    listFile = readdir(path_data*"snapshots/";join=true)
     nsnap = length(listFile)
 
     tab_time = zeros(Float64, nsnap)
@@ -194,9 +190,9 @@ function plot_data()
     # display(plt)
     # readline()
 
-    mkpath(path_dir*"data/plot/")
-    namefile_pdf = path_dir*"data/plot/IOM_plummer.pdf"
-    namefile_png = path_dir*"data/plot/IOM_plummer.png"
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/IOM_plummer.pdf"
+    namefile_png = path_data*"plot/IOM_plummer.png"
     savefig(plt, namefile_pdf)
     savefig(plt, namefile_png)
 
@@ -217,9 +213,9 @@ function plot_data()
     # display(plt2)
     # readline()
 
-    mkpath(path_dir*"data/plot/")
-    namefile_pdf = path_dir*"data/plot/Fractional_IOM_plummer.pdf"
-    namefile_png = path_dir*"data/plot/Fractional_IOM_plummer.png"
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/Fractional_IOM_plummer.pdf"
+    namefile_png = path_data*"plot/Fractional_IOM_plummer.png"
     savefig(plt2, namefile_pdf)
     savefig(plt2, namefile_png)
 

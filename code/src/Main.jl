@@ -14,7 +14,7 @@ function main()
 
     index = 0
 
-    mkpath(path_dir*"data/snapshots/")
+    mkpath(path_dir*"data/snapshots_"*sdate*"/")
 
     while (time < time_end)
 

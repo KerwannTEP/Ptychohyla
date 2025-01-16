@@ -22,17 +22,17 @@ tabargs = ArgParseSettings()
     help = "Number of frames per second"
     arg_type = Int64
     default = 60
-    "--path_dir"
-    help = "IC data file in the cluster's frame"
-    arg_type = String
-    default = "/Users/tep/Documents/Astro_projects/UNC/Julia_fewbody_integrator/"
+
 end
 parsed_args = parse_args(tabargs)
 
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
 const framepersec = parsed_args["framerate"]
-const path_dir = parsed_args["path_dir"]
+
+const path_to_script = @__DIR__
+const path_data = path_to_script * "/../../data/"
+
 
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
@@ -44,11 +44,11 @@ const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # 
 
 function plot_data()
 
-    if (isfile(path_dir*"snapshots/.DS_Store"))
-        rm(path_dir*"snapshots/.DS_Store")
+    if (isfile(path_data*"snapshots/.DS_Store"))
+        rm(path_data*"snapshots/.DS_Store")
     end
 
-    listFile = readdir(path_dir*"data/snapshots/";join=true)
+    listFile = readdir(path_data*"snapshots/";join=true)
     nsnap = length(listFile)
 
     tab_time = zeros(Float64, nsnap)
@@ -75,8 +75,8 @@ function plot_data()
     
     end
 
-    mkpath(path_dir*"data/gif/")
-    namefile_gif = path_dir*"data/gif/plummer.gif"
+    mkpath(path_data*"gif/")
+    namefile_gif = path_data*"gif/plummer.gif"
     gif(anim, namefile_gif, fps = framepersec)
 
 

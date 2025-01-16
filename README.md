@@ -13,20 +13,11 @@ The generation of initial conditions is done using the [PlummerPlus.py](https://
 
 ## Integration
 
-One may launch the script by using the command
+One may both generate the IC and perform a run by going to the `job` folder and launching the bash script
 
 ```
-$ julia -t 12 Main.jl
+$ bash job_stream_run.sh
 ```
 
-where `-t 12` launches a multi-threaded execution over 12 CPU cores. One may find the list of options in the `Args.jl` file. 
-
-One is advised to change the default option of the `--path_dir` argument to the user's directory path, which one can obtain by typing `pwd` in the console after moving to the `Ptychohyla` folder.
-
-As an exemple, the command
-
-```
-$ julia -t 12 Main.jl --dt 0.001 --N_dt 100 --eps 0.001
-```
-
-launches an execution with timestep 0.001 HU, snapshots saved every 100 timesteps and softening length of 0.001 HU. Snapshots are saved in the `data/snapshot` folder.
+One may modify the run's parameters within the bash script file.
+Snapshots are saved in the `data/snapshot` folder.

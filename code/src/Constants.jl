@@ -1,3 +1,14 @@
+using Dates
+
+# Path to src/
+
+const path_to_src = @__DIR__
+const path_dir = path_to_src * "/../../"
+
+# Current time for file saving 
+const date = now()
+const sdate = Dates.format(date, "yyyy-mm-dd_HH-MM-SS")
+
 # Henon units
 const _Mtot = 1.0
 const R_vir = 1.0
