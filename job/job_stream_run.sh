@@ -23,11 +23,11 @@ EPS=0.001 # Softening length of the gravitational interaction
 
 cd ../code/IC_generator
 
-source PlummerPlus/venv/bin/activate
-./PlummerPlus/PlummerPlus.py -n ${N} -q ${Q} -rs ${SEED}
-julia ConvertToHenon.jl --N ${N} --q ${Q} --seed ${SEED}
-rm output.txt
-deactivate
+# source PlummerPlus/venv/bin/activate
+# ./PlummerPlus/PlummerPlus.py -n ${N} -q ${Q} -rs ${SEED}
+# julia ConvertToHenon.jl --N ${N} --q ${Q} --seed ${SEED}
+# rm output.txt
+# deactivate
 
 # Perform the run
 
