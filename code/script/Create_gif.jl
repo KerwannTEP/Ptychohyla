@@ -44,11 +44,13 @@ const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # 
 
 function plot_data()
 
-    if (isfile(path_data*"snapshots/.DS_Store"))
-        rm(path_data*"snapshots/.DS_Store")
+    time = "2025-01-16_11-30-30"
+
+    if (isfile(path_data*"snapshots_"*time*"/.DS_Store"))
+        rm(path_data*"snapshots_"*time*"/.DS_Store")
     end
 
-    listFile = readdir(path_data*"snapshots/";join=true)
+    listFile = readdir(path_data*"snapshots_"*time*"/";join=true)
     nsnap = length(listFile)
 
     tab_time = zeros(Float64, nsnap)
@@ -70,9 +72,22 @@ function plot_data()
         time = parse(Float64, interm[1]*"."*interm[2]) * T_HU_in_Myr
         time = round(time, digits=1)
 
-        rmax = 500
-        scatter(data[:,1], data[:, 2], xlabel=L"x"*" [HU]", ylabel=L"y"*" [HU]", framestyle=:box, labels=:false, xlims=(-rmax, rmax), ylims=(-rmax,rmax), aspect_ratio=1, size=(800,800), left_margin = [2mm 0mm], right_margin = [2mm 0mm], title="t = "*string(time)*" Myr")
-    
+        rmax = 10 # kpc
+        s = 1.0
+
+        # https://docs.juliaplots.org/latest/generated/attributes_plot/
+        # https://stackoverflow.com/questions/71992758/size-and-colour-in-julia-scatter-plot
+
+        scatter(data[:,1] .* R_HU_in_kpc, data[:, 2] .* R_HU_in_kpc , 
+                xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", 
+                framestyle=:box, labels=:false,
+                xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+                aspect_ratio=1, size=(800,800), 
+                left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
+                background_color = :black,
+                markersize=s, color=:white, 
+                title="t = "*string(time)*" Myr")
+
     end
 
     mkpath(path_data*"gif/")
