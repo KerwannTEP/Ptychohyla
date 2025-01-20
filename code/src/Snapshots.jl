@@ -2,7 +2,7 @@ using DelimitedFiles
 
 function write_data!(time::Float64, tab_stars::Array{Float64})
 
-    println(sdate)
+    # println(sdate)
     
     n_digits = floor(Int64,-log10(dt))+1
     # println((time, n_digits))

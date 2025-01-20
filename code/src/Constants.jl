@@ -1,4 +1,5 @@
 using Dates
+using SpecialFunctions
 
 # Path to src/
 
@@ -27,12 +28,25 @@ const d_host = d_kpc/R_HU_in_kpc # Distance to host's centre
 const mass = _Mtot/Npart
 
 
-# Host potential
-const g_1 = log(2) - 1/2
-const g_c = log(1+c) - c/(1+c)
-
-const M_DH_200 =M_DH_200_Msun/(M_HU_in_Msun)
+# Dark halo
+const Mvir = Mvir_Msun/(M_HU_in_Msun)
 const Rs = Rs_kpc/(R_HU_in_kpc)
-const Menc = M_DH_200*g_1/g_c # Enclosed mass within a sphere of radius Rs
-const rho0_host = Menc/(4*pi*Rs^3 * g_1)
+const g_c = log(1+c) - c/(1.0+c)
 
+# const g_1 = log(2) - 1/2
+# const g_c = log(1+c) - c/(1+c)
+# const M_DH_200 = M_DH_200_Msun/(M_HU_in_Msun)
+# const Rs = Rs_kpc/(R_HU_in_kpc)
+# const Menc = M_DH_200*g_1/g_c # Enclosed mass within a sphere of radius Rs
+# const rho0_host = Menc/(4*pi*Rs^3 * g_1)
+
+# Bulge
+const M_bulge = M_bulge_Msun/(M_HU_in_Msun)
+const s_bulge = 0.5*(3.0-alpha_bulge)
+const rc_bulge = rc_bulge_kpc/(R_HU_in_kpc)
+const gamma_s = gamma(s_bulge)
+
+# Disk
+const M_disk = M_disk_Msun/(M_HU_in_Msun)
+const a_disk = a_disk_kpc/(R_HU_in_kpc)
+const b_disk = b_disk_kpc/(R_HU_in_kpc)

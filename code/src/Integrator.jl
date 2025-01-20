@@ -11,7 +11,7 @@ function integrate_stars_euler!(tab_stars::Array{Float64})
 
         x, y, z, vx, vy, vz = tab_stars[i, :]
         Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars)
-        Fx_host, Fy_host, Fz_host = force_NFW(x, y, z)
+        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
 
         ax = (Fx_internal + Fx_host)/mass
         ay = (Fy_internal + Fy_host)/mass
@@ -56,7 +56,7 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
 
         x, y, z, vx, vy, vz = tab_stars[i, :]
         Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars)
-        Fx_host, Fy_host, Fz_host = force_NFW(x, y, z)
+        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
 
         ax = (Fx_internal + Fx_host)/mass
         ay = (Fy_internal + Fy_host)/mass
@@ -95,7 +95,7 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
 
         x, y, z, vx, vy, vz = tab_stars[i, :]
         Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars)
-        Fx_host, Fy_host, Fz_host = force_NFW(x, y, z)
+        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
 
         ax = (Fx_internal + Fx_host)/mass
         ay = (Fy_internal + Fy_host)/mass
