@@ -22,6 +22,14 @@ tabargs = ArgParseSettings()
     help = "Number of frames per second"
     arg_type = Int64
     default = 60
+    "--run"
+    help = "Run id"
+    arg_type = Int64
+    default = 63873070876686
+    "--N"
+    help = "Number for particles"
+    arg_type = Int64
+    default = 10^3
 
 end
 parsed_args = parse_args(tabargs)
@@ -29,10 +37,13 @@ parsed_args = parse_args(tabargs)
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
 const framepersec = parsed_args["framerate"]
+const run = parsed_args["run"]
+const Npart = parsed_args["N"]
 
 const path_to_script = @__DIR__
 const path_data = path_to_script * "/../../data/"
 
+const srun = string(run)
 
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
@@ -40,19 +51,14 @@ const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
 const G_in_kpc_Mpc_Myr = 4.49e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
-const Npart = 10^4
-
-
 
 function plot_data()
 
-    time = "2025-01-16_11-30-30"
-
-    if (isfile(path_data*"snapshots_"*time*"/.DS_Store"))
-        rm(path_data*"snapshots_"*time*"/.DS_Store")
+    if (isfile(path_data*"snapshots_"*srun*"/.DS_Store"))
+        rm(path_data*"snapshots_"*srun*"/.DS_Store")
     end
 
-    listFile = readdir(path_data*"snapshots_"*time*"/";join=true)
+    listFile = readdir(path_data*"snapshots_"*srun*"/";join=true)
     nsnap = length(listFile)
 
     tab_time = zeros(Float64, nsnap)
@@ -163,7 +169,7 @@ function plot_data()
     end
 
     mkpath(path_data*"gif/")
-    namefile_gif = path_data*"gif/plummer_centered.gif"
+    namefile_gif = path_data*"gif/plummer_centered_"*srun*".gif"
     gif(anim, namefile_gif, fps = framepersec)
 
 

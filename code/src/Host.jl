@@ -131,9 +131,9 @@ function force_host(x::Float64, y::Float64, z::Float64)
     Fx_d, Fy_d, Fz_d = force_disk(x, y, z)
     Fx_h, Fy_h, Fz_h = force_halo(x, y, z)
 
-    Fx = Fx_h #+ Fx_d + Fx_b
-    Fy = Fy_h #+ Fy_d + Fy_b
-    Fz = Fz_h #+ Fz_d + Fz_b
+    Fx = Fx_h + Fx_d + Fx_b
+    Fy = Fy_h + Fy_d + Fy_b
+    Fz = Fz_h + Fz_d + Fz_b
 
     return Fx, Fy, Fz 
 
@@ -150,7 +150,7 @@ function circular_velocity(R::Float64)
     dpsidR_d = dpsidR_disk(R, 0.0)
     dpsidR_h = dpsidr_halo(R)
 
-    dpsidR = dpsidR_h #+ dpsidR_d + dpsidR_b
+    dpsidR = dpsidR_h + dpsidR_d + dpsidR_b
 
     return sqrt(R*dpsidR)
 

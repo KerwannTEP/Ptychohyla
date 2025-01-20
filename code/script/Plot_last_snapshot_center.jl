@@ -23,6 +23,14 @@ tabargs = ArgParseSettings()
     help = "Number of frames per second"
     arg_type = Int64
     default = 60
+    "--run"
+    help = "Run id"
+    arg_type = Int64
+    default = 63873070876686
+    "--N"
+    help = "Number for particles"
+    arg_type = Int64
+    default = 10^3
 
 end
 parsed_args = parse_args(tabargs)
@@ -30,6 +38,8 @@ parsed_args = parse_args(tabargs)
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
 const framepersec = parsed_args["framerate"]
+const run = parsed_args["run"]
+const Npart = parsed_args["N"]
 
 const path_to_script = @__DIR__
 const path_data = path_to_script * "/../../data/"
@@ -40,17 +50,15 @@ const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
 const G_in_kpc_Mpc_Myr = 4.49e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
-const Npart = 10^4
+const srun = string(run)
 
 function plot_data()
 
-    time = "2025-01-16_11-30-30"
-
-    if (isfile(path_data*"snapshots_"*time*"/.DS_Store"))
-        rm(path_data*"snapshots_"*time*"/.DS_Store")
+    if (isfile(path_data*"snapshots_"*srun*"/.DS_Store"))
+        rm(path_data*"snapshots_"*srun*"/.DS_Store")
     end
 
-    listFile = readdir(path_data*"snapshots_"*time*"/";join=true)
+    listFile = readdir(path_data*"snapshots_"*srun*"/";join=true)
     nsnap = length(listFile)
 
     tab_time = zeros(Float64, nsnap)
@@ -159,7 +167,7 @@ function plot_data()
 
 
     mkpath(path_data*"plot/")
-    namefile_pdf = path_data*"plot/plummer_last_snapshot_center.pdf"
+    namefile_pdf = path_data*"plot/plummer_last_snapshot_center_"*srun*".pdf"
     savefig(p, namefile_pdf)
 
 

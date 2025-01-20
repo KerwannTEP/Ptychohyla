@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # Plummer IC
-N=1000
+N=10000
 Q=0.0
 SEED=0
 MCLUSTER=100000 # Total mass in solar masses
@@ -41,13 +41,12 @@ deactivate
 
 # Perform the run
 
-cd ../src
-
 RUN=Main.jl
 
+cd ../src
 julia -t 12 ${RUN} --Npart ${N} --q ${Q} --M_cluster ${MCLUSTER} --Rv_cluster ${RV} \
                 --d_cluster ${DIST} --c ${C} --Rs_host ${RS} --Mvir_halo ${MHALO} \
-                --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \   
+                --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS}
-
+                
