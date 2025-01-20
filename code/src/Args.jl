@@ -29,6 +29,7 @@ tabargs = ArgParseSettings()
     default = 8.50e+0
 
 
+
     "--c"
     help = "Halo (NFW) concentration"
     arg_type = Float64
@@ -41,10 +42,6 @@ tabargs = ArgParseSettings()
     help = "Virial massass of the dark halo (NFW), (in solar masses)"
     arg_type = Float64
     default = 0.8e+12
-    # "--M_halo_200"
-    # help = "Mass of the dark halo, M200, within a sphere whose mean density is 200 times the critical density of the universe (in solar masses)"
-    # arg_type = Float64
-    # default = 0.97e+12
 
     "--M_bulge"
     help = "Mass of the bulge (in solar masses)"
@@ -92,13 +89,14 @@ tabargs = ArgParseSettings()
 end
 parsed_args = parse_args(tabargs)
 
+
 const Npart = parsed_args["Npart"]
 const q = parsed_args["q"]
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
 const d_kpc =  parsed_args["d_cluster"]
 
-# const M_DH_200_Msun = parsed_args["M_halo_200"]
+
 const Mvir_Msun = parsed_args["Mvir_halo"]
 const Rs_kpc = parsed_args["Rs_host"]
 const c = parsed_args["c"]
@@ -110,6 +108,7 @@ const rc_bulge_kpc = parsed_args["rc_bulge"]
 const M_disk_Msun = parsed_args["M_disk"]
 const a_disk_kpc = parsed_args["a_disk"]
 const b_disk_kpc = parsed_args["b_disk"]
+
 
 const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
