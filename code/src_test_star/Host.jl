@@ -11,6 +11,8 @@ using SpecialFunctions
 
 # Enclosed mass of the bulge
 
+# Something wrong here with potential
+
 function gamma_low_sx(xr)
 
     return gamma_s - gamma(s_bulge, xr)
@@ -29,12 +31,16 @@ function force_bulge(x::Float64, y::Float64, z::Float64)
     xr = (r/rc_bulge)^2
     gamma_s_x = gamma_low_sx(xr)
 
-    Menc = M_bulge * gamma_s_x/gamma_s
-    fr = - _G * Menc/r^2 
 
-    Fx = mass * fr * x/r
-    Fy = mass * fr * y/r
-    Fz = mass * fr * z/r
+
+    Menc = M_bulge * gamma_s_x/gamma_s
+    fr = - _G * Menc/r^2
+
+    # println(fr)
+
+    Fx = fr * x/r
+    Fy = fr * y/r
+    Fz = fr * z/r
 
     return Fx, Fy, Fz 
 
@@ -81,9 +87,9 @@ function force_disk(x::Float64, y::Float64, z::Float64)
     fR = - _G * M_disk * R/(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2)
     fz = - _G * M_disk * z * (sqrt(z^2 + b_disk^2) + a_disk)/(sqrt(z^2+b_disk^2)*(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2))
 
-    Fx = mass * fR * x/R 
-    Fy = mass * fR * y/R 
-    Fz = mass * fz
+    Fx = fR * x/R 
+    Fy = fR * y/R 
+    Fz = fz
 
     return Fx, Fy, Fz
 
@@ -125,9 +131,9 @@ function force_halo(x::Float64, y::Float64, z::Float64)
     Menc = Menc_halo(r)
     fr = - _G * Menc/r^2
 
-    Fx = mass * fr * x/r
-    Fy = mass * fr * y/r
-    Fz = mass * fr * z/r
+    Fx = fr * x/r
+    Fy = fr * y/r
+    Fz = fr * z/r
 
     return Fx, Fy, Fz 
 
@@ -158,6 +164,7 @@ function force_host(x::Float64, y::Float64, z::Float64)
     Fx_b, Fy_b, Fz_b = force_bulge(x, y, z)
     Fx_d, Fy_d, Fz_d = force_disk(x, y, z)
     Fx_h, Fy_h, Fz_h = force_halo(x, y, z)
+
 
     Fx = Fx_h + Fx_d + Fx_b
     Fy = Fy_h + Fy_d + Fy_b
