@@ -31,12 +31,8 @@ function force_bulge(x::Float64, y::Float64, z::Float64)
     xr = (r/rc_bulge)^2
     gamma_s_x = gamma_low_sx(xr)
 
-
-
     Menc = M_bulge * gamma_s_x/gamma_s
     fr = - _G * Menc/r^2
-
-    # println(fr)
 
     Fx = fr * x/r
     Fy = fr * y/r
@@ -46,22 +42,19 @@ function force_bulge(x::Float64, y::Float64, z::Float64)
 
 end
 
+# This is wrong ?
 function psi_bulge(r::Float64)
 
     xr = (r/rc_bulge)^2
-    gamma_upper = gamma(s_bulge, xr)
-    gamma_lower = gamma_s - gamma_upper
 
-    Menc = M_bulge * gamma_lower/gamma_s
-    rho0 = M_bulge/(2.0 * gamma_s)
+    # Inner potential
+    gamma_lower = gamma_s - gamma(s_bulge, xr)
+    psi_inner = -_G*M_bulge/r * gamma_lower/gamma_s
 
-
-    # Inner 
-    psi_inner = -_G * Menc/r 
-
-    # outer
-    psi_outer = -2.0*pi*_G * rho0*rc_bulge^2 * gamma_upper
-
+    # Outer potential 
+    gamma_upper = gamma(1.0-alpha_bulge/2.0, xr)
+    psi_outer = -_G*M_bulge/rc_bulge * gamma_upper/gamma_s
+    
     return psi_inner + psi_outer
 
 end

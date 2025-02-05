@@ -40,22 +40,19 @@ function force_bulge(x::Float64, y::Float64, z::Float64)
 
 end
 
+# This is wrong ?
 function psi_bulge(r::Float64)
 
     xr = (r/rc_bulge)^2
-    gamma_upper = gamma(s_bulge, xr)
-    gamma_lower = gamma_s - gamma_upper
 
-    Menc = M_bulge * gamma_lower/gamma_s
-    rho0 = M_bulge/(2.0 * gamma_s)
+    # Inner potential
+    gamma_lower = gamma_s - gamma(s_bulge, xr)
+    psi_inner = -_G*M_bulge/r * gamma_lower/gamma_s
 
-
-    # Inner 
-    psi_inner = -_G * Menc/r 
-
-    # outer
-    psi_outer = -2.0*pi*_G * rho0*rc_bulge^2 * gamma_upper
-
+    # Outer potential 
+    gamma_upper = gamma(1.0-alpha_bulge/2.0, xr)
+    psi_outer = -_G*M_bulge/rc_bulge * gamma_upper/gamma_s
+     
     return psi_inner + psi_outer
 
 end
@@ -159,9 +156,9 @@ function force_host(x::Float64, y::Float64, z::Float64)
     Fx_d, Fy_d, Fz_d = force_disk(x, y, z)
     Fx_h, Fy_h, Fz_h = force_halo(x, y, z)
 
-    Fx = Fx_h + Fx_d + Fx_b
-    Fy = Fy_h + Fy_d + Fy_b
-    Fz = Fz_h + Fz_d + Fz_b
+    Fx = Fx_h + Fx_d + Fx_b#
+    Fy = Fy_h + Fy_d + Fy_b# 
+    Fz = Fz_h + Fz_d + Fz_b#
 
     return Fx, Fy, Fz 
 

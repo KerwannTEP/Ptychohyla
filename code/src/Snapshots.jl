@@ -1,7 +1,7 @@
 using DelimitedFiles
 
 
-function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Float64})
+function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Float64}, tab_bary::Array{Float64})
     
     n_digits = floor(Int64,-log10(dt))+1
     namefile = path_dir*"data/snapshots_"*srun*"/time_"*string(round(time, digits=n_digits))*".txt"
@@ -13,7 +13,46 @@ function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Fl
     writedlm(io, transpose([round(time, digits=n_digits); tab_IOM]))
     close(io)
 
+    namefile_bary = path_dir*"data/bary_snapshots_"*srun*".txt"
+    io2 = open(namefile_bary, "a")
+    writedlm(io2, transpose([round(time, digits=n_digits); tab_bary]))
+    close(io2)
+
     return nothing
+
+end
+
+function compute_bary!(tab_stars::Array{Float64}, tab_bary::Array{Float64})
+
+    xb_t = zeros(Float64, Threads.nthreads())
+    yb_t = zeros(Float64, Threads.nthreads())
+    zb_t = zeros(Float64, Threads.nthreads())
+
+    Threads.@threads for i=1:Npart
+
+        tid = Threads.threadid()
+
+        x, y, z, vx, vy, vz = tab_stars[i, :]
+
+        xb_t[tid] += x
+        yb_t[tid] += y
+        zb_t[tid] += z
+
+    end
+
+    tab_bary[1] = 0.0
+    tab_bary[2] = 0.0
+    tab_bary[3] = 0.0
+
+    for tid=1:Threads.nthreads()
+
+        tab_bary[1] += xb_t[tid]/Npart 
+        tab_bary[2] += yb_t[tid]/Npart 
+        tab_bary[3] += zb_t[tid]/Npart 
+
+    end
+
+    
 
 end
 
@@ -35,7 +74,7 @@ function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
         r = sqrt(x^2 + y^2 + z^2)
         R = sqrt(x^2 + y^2)
         v2 = vx^2 + vy^2 + vz^2
-        psi_xyz = psi_bulge(r) + psi_disk(R, z) + psi_halo(r)
+        psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) #
 
         # Kinetic energy 
         K_t[tid] += 0.5 * mass * v2 
@@ -48,9 +87,9 @@ function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
         Ly = z*vx - x*vz 
         Lz = x*vy - y*vx 
 
-        L_t[tid, 1] += Lx
-        L_t[tid, 2] += Ly
-        L_t[tid, 3] += Lz
+        L_t[tid, 1] += mass * Lx
+        L_t[tid, 2] += mass * Ly
+        L_t[tid, 3] += mass * Lz
 
     end
 
@@ -115,3 +154,9 @@ function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
     tab_IOM[7] = sqrt(L[1]^2 + L[2]^2 + L[3]^2)
 
 end
+
+
+# data=readdlm("bary_snapshots_63874381745789.txt")
+# plot(data[:,2], [data[:,3]], xlims=(-500,500), ylims=(-500,500), aspect_ratio=1, xticks=-500:100:500, yticks=-500:100:500, frame=:box, label=:false)
+# data=readdlm("iom_snapshots_63874381745789.txt")
+# plot(data[:,1], [data[:,4]], label=:false)

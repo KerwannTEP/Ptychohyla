@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # Plummer IC
-N=10000
+N=1000
 Q=0.0
 SEED=0
 MCLUSTER=100000 # Total mass in solar masses
@@ -33,11 +33,11 @@ EPS=0.001 # Softening length of the gravitational interaction
 
 cd ../code/IC_generator
 
-# source PlummerPlus/venv/bin/activate
-# ./PlummerPlus/PlummerPlus.py -n ${N} -q ${Q} -rs ${SEED}
-# julia ConvertToHenon.jl --N ${N} --q ${Q} --seed ${SEED}
-# rm output.txt
-# deactivate
+source PlummerPlus/venv/bin/activate
+./PlummerPlus/PlummerPlus.py -n ${N} -q ${Q} -rs ${SEED}
+julia ConvertToHenon.jl --N ${N} --q ${Q} --seed ${SEED}
+rm output.txt
+deactivate
 
 # Perform the run
 
