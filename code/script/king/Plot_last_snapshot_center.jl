@@ -18,11 +18,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.06478848136966434
+    default = 0.011839088782478026
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874516769458
+    default = 63874531748065
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -42,7 +42,7 @@ const path_data = path_to_script * "/../../../data/"
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
-const G_in_kpc_MSun_Myr = 4.49e-12
+const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
 const srun = string(run)

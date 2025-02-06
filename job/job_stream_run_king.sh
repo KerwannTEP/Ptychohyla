@@ -3,7 +3,7 @@
 # King IC
 N=10000
 MCLUSTER=100000 # Total mass in solar masses
-RH=0.05 # Virial radius in kpc
+RH=0.01 # Virial radius in kpc
 DIST=4.0 # Distance of the cluster to the host potential's centre (in kpc)
 
 # Dark halo
@@ -22,8 +22,8 @@ ADISK=3.0
 BDISK=0.280
 
 # Run parameters
-TEND=50.0 # Final time, in Henon units
-DT=0.005 #0.01 # Timestep, in Henon units
+TEND=500.0 # Final time, in Henon units
+DT=0.01 #0.01 # Timestep, in Henon units
 NDT=10 #10 # Frequency of snapshot save
 EPS=0.01 # Softening length of the gravitational interaction, in Henon units
 

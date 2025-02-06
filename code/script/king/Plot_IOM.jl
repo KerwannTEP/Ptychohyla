@@ -18,11 +18,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.06478848136966434
+    default = 0.011839088782478026
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874516769458
+    default = 63874531748065
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -45,7 +45,7 @@ const srun = string(run)
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
-const G_in_kpc_MSun_Myr = 4.49e-12
+const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
 const E_HU_in_MSun_kpc_Myr = M_HU_in_Msun^2 * G_in_kpc_MSun_Myr/R_HU_in_kpc
@@ -72,9 +72,9 @@ function plot_data()
     datab=readdlm(path_data*"bary_snapshots_"*srun*".txt")
 
     pltb = plot(datab[:,2] .* R_HU_in_kpc, [datab[:,3]] .* R_HU_in_kpc, 
-            xlims=(-10,10), ylims=(-10,10), 
+            xlims=(-5,5), ylims=(-5,5), 
             aspect_ratio=1, 
-            xticks=-10:2:10, yticks=-10:2:10, 
+            xticks=-5:1:5, yticks=-5:1:5, 
             frame=:box, label=:false, 
             xlabel="x [kpc]", ylabel="y [kpc]")
 
@@ -86,7 +86,9 @@ function plot_data()
     namefile_pdf = path_data*"plot/IOM_king_"*srun*".pdf"
     savefig(plt, namefile_pdf)
 
-
+    mkpath(path_data*"plot/")
+    namefilep_pdf = path_data*"plot/bary_king_"*srun*".pdf"
+    savefig(pltb, namefilep_pdf)
 
 
 end

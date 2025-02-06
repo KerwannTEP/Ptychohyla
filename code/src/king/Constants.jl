@@ -14,7 +14,7 @@ function get_Rv_in_kpc()
     datay = df[:, 7]
     dataz = df[:, 8]
 
-    datar = sqrt.(datax .^2 + datay .^2 + datay .^2)
+    datar = sqrt.(datax .^2 + datay .^2 + dataz .^2)
     datar = sort(datar)
 
     Rh_HU = datar[div(Npart, 2)]
@@ -49,11 +49,11 @@ const _G = 1.0
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = get_Rv_in_kpc() # Value of 1 HU length in kpc
-const G_in_kpc_MSun_Myr = 4.49e-12
+const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr 
 
 const V_HU_in_kpc_Myr = sqrt((G_in_kpc_MSun_Myr*M_HU_in_Msun)/R_HU_in_kpc)
-const V_HU_in_km_s = V_HU_in_kpc_Myr * 978.5
+const V_HU_in_km_s = V_HU_in_kpc_Myr * 977.792
 # x kpc/Myr = x kpc/km s/Myr km/s = y km/s ; y = x kpc/km s/Myr
 
 # Cluster potential

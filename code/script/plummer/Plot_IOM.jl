@@ -45,7 +45,7 @@ const srun = string(run)
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
-const G_in_kpc_MSun_Myr = 4.49e-12
+const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
 const E_HU_in_MSun_kpc_Myr = M_HU_in_Msun^2 * G_in_kpc_MSun_Myr/R_HU_in_kpc
