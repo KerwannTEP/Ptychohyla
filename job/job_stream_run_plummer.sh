@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # Plummer IC
-N=1000
+N=10000
 Q=0.0
 SEED=0
 MCLUSTER=100000 # Total mass in solar masses
@@ -24,26 +24,17 @@ ADISK=3.0
 BDISK=0.280
 
 # Run parameters
-TEND=600.0 # Final time, in Henon units
-DT=0.01 # Timestep, in Henon units
+TEND=100.0 # Final time, in Henon units
+DT=0.005 # Timestep, in Henon units
 NDT=10 # Frequency of snapshot save
-EPS=0.001 # Softening length of the gravitational interaction
-
-# Generate initial Plummer cluster
-
-cd ../code/IC_generator
-
-source PlummerPlus/venv/bin/activate
-./PlummerPlus/PlummerPlus.py -n ${N} -q ${Q} -rs ${SEED}
-julia ConvertToHenon.jl --N ${N} --q ${Q} --seed ${SEED}
-rm output.txt
-deactivate
+EPS=0.01 # Softening length of the gravitational interaction
 
 # Perform the run
 
 RUN=Main.jl
 
-cd ../src
+cd ../code/src/plummer
+
 julia -t 12 ${RUN} --Npart ${N} --q ${Q} --M_cluster ${MCLUSTER} --Rv_cluster ${RV} \
                 --d_cluster ${DIST} --c ${C} --Rs_host ${RS} --Mvir_halo ${MHALO} \
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \

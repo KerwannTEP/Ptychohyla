@@ -64,6 +64,12 @@ function dpsidr_bulge(r::Float64)
     return _G * M_bulge/r^2 * gamma_s_x/gamma_s
 end
 
+function rho_bulge(r::Float64)
+
+    rho0 = M_bulge/(2.0*pi*rc_bulge^3*gamma_s)
+    return rho0 * (rc_bulge/r)^(alpha_bulge) * exp(-(r/rc_bulge)^2)
+
+end
 
 ####################################################################################
 # Disk
@@ -88,7 +94,7 @@ end
 
 function psi_disk(R::Float64, z::Float64)
 
-    return _G * M_disk/sqrt(R^2 + (sqrt(z^2 + b_disk^2) + a_disk)^2)
+    return -_G * M_disk/sqrt(R^2 + (sqrt(z^2 + b_disk^2) + a_disk)^2)
 
 end
 
@@ -97,7 +103,16 @@ function dpsidR_disk(R::Float64, z::Float64)
     return _G * M_disk * R/(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2)
 end
 
+# https://galaxiesbook.org/chapters/II-01.-Flattened-Mass-Distributions.html
+# eq (8.20)
+function rho_disk(R::Float64, z::Float64)
 
+    num = a_disk*R^2 + (3.0*sqrt(z^2+b_disk^2)+a_disk) * (sqrt(z^2+b_disk^2)+a_disk)^2
+    den = (R^2 + (sqrt(z^2+b_disk^2)+a_disk)^2)^(5/2) * (z^2+b_disk^2)^(3/2)
+
+    return b_disk^2*M_disk/(4*pi) * num/den
+
+end
 
 ####################################################################################
 # Dark halo (NFW)
@@ -145,6 +160,18 @@ function dpsidr_halo(r::Float64)
     return _G * Menc/r^2
 end
 
+# https://galaxiesbook.org/chapters/I-01.-Potential-Theory-and-Spherical-Mass-Distributions.html
+# NFW 
+# alpha=1, beta=3
+function rho_halo(r::Float64)
+
+    #4*pi*rho0*Rs^3 = Mvir/g_c
+
+    rho0 = Mvir / (g_c * 4*pi*Rs^3)
+    return rho0 * Rs/(r * (1.0 + (r/Rs)^2))
+
+end
+
 
 ####################################################################################
 # Total force
@@ -156,9 +183,9 @@ function force_host(x::Float64, y::Float64, z::Float64)
     Fx_d, Fy_d, Fz_d = force_disk(x, y, z)
     Fx_h, Fy_h, Fz_h = force_halo(x, y, z)
 
-    Fx = Fx_h + Fx_d + Fx_b#
-    Fy = Fy_h + Fy_d + Fy_b# 
-    Fz = Fz_h + Fz_d + Fz_b#
+    Fx = Fx_h + Fx_d + Fx_b
+    Fy = Fy_h + Fy_d + Fy_b
+    Fz = Fz_h + Fz_d + Fz_b
 
     return Fx, Fy, Fz 
 

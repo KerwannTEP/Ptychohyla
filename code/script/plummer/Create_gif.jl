@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63873070876686
+    default = 63874519109785
 
 end
 parsed_args = parse_args(tabargs)
@@ -36,14 +36,14 @@ const framepersec = parsed_args["framerate"]
 const run = parsed_args["run"]
 
 const path_to_script = @__DIR__
-const path_data = path_to_script * "/../../data/"
+const path_data = path_to_script * "/../../../data/"
 
 
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
-const G_in_kpc_Mpc_Myr = 4.49e-12
-const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
+const G_in_kpc_MSun_Myr = 4.49e-12
+const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
 const srun = string(run)
 
@@ -66,7 +66,7 @@ function plot_data()
 
     p = sortperm(tab_time)
 
-    anim = @animate for i=1:nsnap
+    anim = @animate for i=1:10:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -95,6 +95,38 @@ function plot_data()
 
     mkpath(path_data*"gif/")
     namefile_gif = path_data*"gif/plummer_"*srun*".gif"
+    gif(anim, namefile_gif, fps = framepersec)
+
+    # (x,z)
+    anim = @animate for i=1:10:nsnap
+
+        println("Progress = ", i/nsnap)
+        namefile = listFile[p[i]]
+        data = readdlm(namefile, header=false)
+        interm = split(split(namefile,"_")[end],".")
+        time = parse(Float64, interm[1]*"."*interm[2]) * T_HU_in_Myr
+        time = round(time, digits=1)
+
+        rmax = 10 # kpc
+        s = 1.0
+
+        # https://docs.juliaplots.org/latest/generated/attributes_plot/
+        # https://stackoverflow.com/questions/71992758/size-and-colour-in-julia-scatter-plot
+
+        scatter(data[:,1] .* R_HU_in_kpc, data[:, 3] .* R_HU_in_kpc , 
+                xlabel=L"x"*" [kpc]", ylabel=L"z"*" [kpc]", 
+                framestyle=:box, labels=:false,
+                xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+                aspect_ratio=1, size=(800,800), 
+                left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
+                background_color = :black,
+                markersize=s, color=:white, 
+                title="t = "*string(time)*" Myr")
+
+    end
+
+    mkpath(path_data*"gif/")
+    namefile_gif = path_data*"gif/plummer_"*srun*"_xz.gif"
     gif(anim, namefile_gif, fps = framepersec)
 
 

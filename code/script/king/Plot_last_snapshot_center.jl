@@ -18,37 +18,32 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 2.00e-2
-    "--framerate"
-    help = "Number of frames per second"
-    arg_type = Int64
-    default = 60
+    default = 0.06478848136966434
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63873070876686
+    default = 63874516769458
     "--N"
     help = "Number for particles"
     arg_type = Int64
-    default = 10^3
+    default = 10^4
 
 end
 parsed_args = parse_args(tabargs)
 
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
-const framepersec = parsed_args["framerate"]
 const run = parsed_args["run"]
 const Npart = parsed_args["N"]
 
 const path_to_script = @__DIR__
-const path_data = path_to_script * "/../../data/"
+const path_data = path_to_script * "/../../../data/"
 
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
-const G_in_kpc_Mpc_Myr = 4.49e-12
-const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
+const G_in_kpc_MSun_Myr = 4.49e-12
+const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
 const srun = string(run)
 
@@ -137,7 +132,7 @@ function plot_data()
     datayc = sin(-theta) .* datax + cos(-theta) .* datay
 
 
-    rmax = 1 # kpc
+    rmax = 0.5 # kpc
     s = 1.0
 
     # https://docs.juliaplots.org/latest/generated/attributes_plot/
@@ -158,7 +153,7 @@ function plot_data()
             #xlabel=L"x"*" [pc]", ylabel=L"y"*" [pc]", 
             #framestyle=:box, 
             labels=:false,
-            #xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+            xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
             #aspect_ratio=1, size=(800,800), 
             #left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
             #background_color = :black,
@@ -167,7 +162,7 @@ function plot_data()
 
 
     mkpath(path_data*"plot/")
-    namefile_pdf = path_data*"plot/plummer_last_snapshot_center_"*srun*".pdf"
+    namefile_pdf = path_data*"plot/king_last_snapshot_center_"*srun*".pdf"
     savefig(p, namefile_pdf)
 
 

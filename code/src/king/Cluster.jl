@@ -1,23 +1,34 @@
 using DelimitedFiles
+using CSV 
+using DataFrames
 
 function initialize_stars!(tab_stars::Array{Float64})
 
+    # Load King sphere in Henon units
+    namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
-    namefile = path_dir*"code/IC_generator/data_IC/plummer_sphere_n_"*string(Npart)*"_q_"*string(q)*".txt"
-    data = readdlm(namefile, header=false)
+
+    datax = df[:, 6]
+    datay = df[:, 7]
+    dataz = df[:, 8]
+    datavx = df[:, 9]
+    datavy = df[:, 10]
+    datavz = df[:, 11]
+
 
     vcirc = circular_velocity(d_host)
-    println("Vc = ", vcirc)
-
+    println("Vc [HU] = ", vcirc)
+    println("Vc [km/s] = ", vcirc * V_HU_in_km_s)
 
     Threads.@threads for i=1:Npart 
 
-        tab_stars[i, 1] = d_host + data[i, 1] # Cluster on the x>0 x-axis
-        tab_stars[i, 2] = data[i, 2]
-        tab_stars[i, 3] = data[i, 3]
-        tab_stars[i, 4] = data[i, 4]
-        tab_stars[i, 5] = vcirc + data[i, 5] # Circular velocity: cluster goes in the y-direction
-        tab_stars[i, 6] = data[i, 6]
+        tab_stars[i, 1] = d_host + datax[i] # Cluster on the x>0 x-axis
+        tab_stars[i, 2] = datay[i]
+        tab_stars[i, 3] = dataz[i]
+        tab_stars[i, 4] = datavx[i]
+        tab_stars[i, 5] = vcirc + datavy[i] # Circular velocity: cluster goes in the y-direction
+        tab_stars[i, 6] = datavz[i]
 
     end
 

@@ -4,7 +4,7 @@ using SpecialFunctions
 # Path to src/
 
 const path_to_src = @__DIR__
-const path_dir = path_to_src * "/../../"
+const path_dir = path_to_src * "/../../../"
 
 # Current time for file saving 
 const date = now()
@@ -20,12 +20,16 @@ const _G = 1.0
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
-const G_in_kpc_Mpc_Myr = 4.49e-12
-const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_Mpc_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
+const G_in_kpc_MSun_Myr = 4.49e-12
+const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
+
+const V_HU_in_kpc_Myr = sqrt((G_in_kpc_MSun_Myr*M_HU_in_Msun)/R_HU_in_kpc)
+const V_HU_in_km_s = V_HU_in_kpc_Myr * 978.5
+# x kpc/Myr = x kpc/km s/Myr km/s = y km/s ; y = x kpc/km s/Myr
 
 # Cluster potential
 const d_host = d_kpc/R_HU_in_kpc # Distance to host's centre
-
+const mass = _Mtot/Npart
 
 # Dark halo
 const Mvir = Mvir_Msun/(M_HU_in_Msun)
