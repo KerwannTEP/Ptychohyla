@@ -68,7 +68,7 @@ function plot_data()
     time = parse(Float64, interm[1]*"."*interm[2]) * T_HU_in_Myr
     time = round(time, digits=1)
 
-    rmax = 10 # kpc
+    rmax = 5.0 # kpc
     s = 1.0
 
     # https://docs.juliaplots.org/latest/generated/attributes_plot/

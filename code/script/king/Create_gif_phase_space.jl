@@ -69,7 +69,7 @@ function plot_data()
 
     # nsnap = 10
     # (x,z)
-    anim = @animate for i=1:10:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]

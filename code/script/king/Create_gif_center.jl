@@ -80,7 +80,7 @@ function plot_data()
 
     # nsnap = 1000
 
-    anim = @animate for i=1:10:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -140,7 +140,7 @@ function plot_data()
         datayc = sin(-theta) .* datax + cos(-theta) .* datay
 
 
-        rmax = 0.5 # kpc
+        rmax = 1.0 # kpc
         s = 1.0
 
         # https://docs.juliaplots.org/latest/generated/attributes_plot/

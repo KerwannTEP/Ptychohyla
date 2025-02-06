@@ -67,7 +67,7 @@ function plot_data()
     p = sortperm(tab_time)
 
     # (x,y)
-    anim = @animate for i=1:10:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -99,7 +99,7 @@ function plot_data()
     gif(anim, namefile_gif, fps = framepersec)
 
     # (x,z)
-    anim = @animate for i=1:10:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
