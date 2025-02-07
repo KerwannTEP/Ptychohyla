@@ -18,10 +18,6 @@ tabargs = ArgParseSettings()
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
     default = 0.011839088782478026
-    "--framerate"
-    help = "Number of frames per second"
-    arg_type = Int64
-    default = 30
     "--run"
     help = "Run id"
     arg_type = Int64
@@ -32,12 +28,10 @@ parsed_args = parse_args(tabargs)
 
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
-const framepersec = parsed_args["framerate"]
 const run = parsed_args["run"]
 
 const path_to_script = @__DIR__
 const path_data = path_to_script * "/../../../data/"
-
 
 # Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
@@ -46,6 +40,7 @@ const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
 const srun = string(run)
+
 
 function plot_data()
 
@@ -66,45 +61,33 @@ function plot_data()
 
     p = sortperm(tab_time)
 
-    # nsnap=200
+   
+    namefile = listFile[p[nsnap]]
+    data = readdlm(namefile, header=false)
+    interm = split(split(namefile,"_")[end],".")
+    time = parse(Float64, interm[1]*"."*interm[2]) * T_HU_in_Myr
+    time = round(time, digits=1)
 
-    # (x,y,z)
-    anim = @animate for i=1:nsnap
+    rmax = 5.0 # kpc
+    s = 1.0
 
-        println("Progress = ", i/nsnap)
-        namefile = listFile[p[i]]
-        data = readdlm(namefile, header=false)
-        interm = split(split(namefile,"_")[end],".")
-        time = parse(Float64, interm[1]*"."*interm[2]) * T_HU_in_Myr
-        time = round(time, digits=1)
+    # https://docs.juliaplots.org/latest/generated/attributes_plot/
+    # https://stackoverflow.com/questions/71992758/size-and-colour-in-julia-scatter-plot
 
-        rmax = 5 # kpc
-        s = 1.0
-
-        # https://docs.juliaplots.org/latest/generated/attributes_plot/
-        # https://stackoverflow.com/questions/71992758/size-and-colour-in-julia-scatter-plot
-
-        scatter(data[:,1] .* R_HU_in_kpc, data[:,2] .* R_HU_in_kpc, data[:, 3] .* R_HU_in_kpc , 
-                xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", zlabel=L"z"*" [kpc]", 
-                framestyle=:box, labels=:false,
-                xlims=(-rmax, rmax), ylims=(-rmax,rmax),  zlims=(-rmax,rmax), 
+    p = scatter(data[:,1] .* R_HU_in_kpc, data[:, 2] .* R_HU_in_kpc , 
+                xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", 
+                framestyle=:box, labels=:false, 
+                xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
                 aspect_ratio=1, size=(800,800), 
                 left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
                 background_color = :black,
                 markersize=s, color=:white, 
-                # https://docs.juliaplots.org/latest/#simple-is-beautiful
-                # https://discourse.julialang.org/t/3d-plots-possible-to-change-view-point/10155/3
-                camera=(45, 5), # rotation angles of the camera
                 title="t = "*string(time)*" Myr")
 
-    end
 
-    mkpath(path_data*"gif/")
-    namefile_gif = path_data*"gif/king_"*srun*"_3d.gif"
-    gif(anim, namefile_gif, fps = framepersec)
-
-
-
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/cluster_"*srun*"_last_snapshot.pdf"
+    savefig(p, namefile_pdf)
 
 
 end

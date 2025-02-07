@@ -95,7 +95,7 @@ function plot_data()
     end
 
     mkpath(path_data*"gif/")
-    namefile_gif = path_data*"gif/king_"*srun*"_xy.gif"
+    namefile_gif = path_data*"gif/cluster_"*srun*"_xy.gif"
     gif(anim, namefile_gif, fps = framepersec)
 
     # (x,z)
@@ -127,7 +127,7 @@ function plot_data()
     end
 
     mkpath(path_data*"gif/")
-    namefile_gif = path_data*"gif/king_"*srun*"_xz.gif"
+    namefile_gif = path_data*"gif/cluster_"*srun*"_xz.gif"
     gif(anim, namefile_gif, fps = framepersec)
 
 

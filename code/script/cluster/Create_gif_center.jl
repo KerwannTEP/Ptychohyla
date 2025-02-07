@@ -17,15 +17,15 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 2.00e-2
+    default = 0.011839088782478026
     "--framerate"
     help = "Number of frames per second"
     arg_type = Int64
-    default = 60
+    default = 30
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874519109785
+    default = 63874531748065
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -77,6 +77,8 @@ function plot_data()
     tab_dens = zeros(Float64, Npart)
 
     nb_neigh = 6
+
+    # nsnap = 1000
 
     anim = @animate for i=1:1:nsnap
 
@@ -138,7 +140,7 @@ function plot_data()
         datayc = sin(-theta) .* datax + cos(-theta) .* datay
 
 
-        rmax = 1 # kpc
+        rmax = 1.0 # kpc
         s = 1.0
 
         # https://docs.juliaplots.org/latest/generated/attributes_plot/
@@ -159,8 +161,8 @@ function plot_data()
                 #xlabel=L"x"*" [pc]", ylabel=L"y"*" [pc]", 
                 #framestyle=:box, 
                 labels=:false,
-                #xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
-                #aspect_ratio=1, size=(800,800), 
+                xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+                aspect_ratio=1, size=(800,800), 
                 #left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
                 #background_color = :black,
                 markersize=s, color=:white)#, 
@@ -169,7 +171,7 @@ function plot_data()
     end
 
     mkpath(path_data*"gif/")
-    namefile_gif = path_data*"gif/plummer_centered_"*srun*".gif"
+    namefile_gif = path_data*"gif/cluster_"*srun*"_centered.gif"
     gif(anim, namefile_gif, fps = framepersec)
 
 
