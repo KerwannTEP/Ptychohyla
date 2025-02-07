@@ -38,11 +38,11 @@ end
 
 # force on star k from all other stars
 # tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
-function force_internal(k::Int64, tab_stars::Array{Float64})
+function acc_internal(k::Int64, tab_stars::Array{Float64})
 
-    Fx = 0.0
-    Fy = 0.0
-    Fz = 0.0
+    ax = 0.0
+    ay = 0.0
+    az = 0.0
 
     xk = tab_stars[k,1]
     yk = tab_stars[k,2]
@@ -62,17 +62,30 @@ function force_internal(k::Int64, tab_stars::Array{Float64})
 
             rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
 
-            intensity = _G*mass*mass/rik^3 
+            intensity = _G*mass/rik^3 
 
-            Fx += intensity * xik
-            Fy += intensity * yik
-            Fz += intensity * zik
+            ax += intensity * xik
+            ay += intensity * yik
+            az += intensity * zik
 
         end
 
     end
 
-    return Fx, Fy, Fz
+    return ax, ay, az
 
 end
 
+# force on star k from all other stars
+# tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
+function force_internal(k::Int64, tab_stars::Array{Float64})
+
+    ax, ay, az = acc_internal(k, tab_stars)
+
+    Fx = mass * ax
+    Fy = mass * ay
+    Fz = mass * az
+
+    return Fx, Fy, Fz
+
+end

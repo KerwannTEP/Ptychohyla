@@ -10,12 +10,12 @@ function integrate_stars_euler!(tab_stars::Array{Float64})
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz = tab_stars[i, :]
-        Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars)
-        Fx_host, Fy_host, Fz_host = force_host(x, y, z) 
+        ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars)
+        ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        ax = (Fx_internal + Fx_host)/mass
-        ay = (Fy_internal + Fy_host)/mass
-        az = (Fz_internal + Fz_host)/mass
+        ax = ax_internal + ax_host
+        ay = ay_internal + ay_host
+        az = az_internal + az_host
 
         
         dx = dt * vx
@@ -57,12 +57,12 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars_temp)
-        Fx_host, Fy_host, Fz_host = force_host(x, y, z) 
+        ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
+        ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        ax = (Fx_internal + Fx_host)/mass
-        ay = (Fy_internal + Fy_host)/mass
-        az = (Fz_internal + Fz_host)/mass
+        ax = ax_internal + ax_host
+        ay = ay_internal + ay_host
+        az = az_internal + az_host
 
 
         dvx = dt/2 * ax
@@ -99,12 +99,12 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars_temp)
-        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
+        ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
+        ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        ax = (Fx_internal + Fx_host)/mass
-        ay = (Fy_internal + Fy_host)/mass
-        az = (Fz_internal + Fz_host)/mass
+        ax = ax_internal + ax_host
+        ay = ay_internal + ay_host
+        az = az_internal + az_host
 
         dvx = dt/2 * ax
         dvy = dt/2 * ay

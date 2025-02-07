@@ -23,18 +23,29 @@ function Menc_bulge(r::Float64)
     return M_bulge * gamma_low_sx(xr)/gamma_s
 end
 
-function force_bulge(x::Float64, y::Float64, z::Float64)
+function acc_bulge(x::Float64, y::Float64, z::Float64)
 
     r = sqrt(x*x + y*y + z*z)
     xr = (r/rc_bulge)^2
     gamma_s_x = gamma_low_sx(xr)
 
     Menc = M_bulge * gamma_s_x/gamma_s
-    fr = - _G * Menc/r^2 
+    ar = - _G * Menc/r^2 
 
-    Fx = mass * fr * x/r
-    Fy = mass * fr * y/r
-    Fz = mass * fr * z/r
+    ax = ar * x/r
+    ay = ar * y/r
+    az = ar * z/r
+
+    return ax, ay, az 
+end
+
+function force_bulge(x::Float64, y::Float64, z::Float64)
+
+    ax, ay, az = acc_bulge(x, y, z)
+
+    Fx = mass * ax
+    Fy = mass * ay
+    Fz = mass * az
 
     return Fx, Fy, Fz 
 
@@ -77,18 +88,29 @@ end
 # CHC II appendix C1
 ####################################################################################
 
-function force_disk(x::Float64, y::Float64, z::Float64)
+function acc_disk(x::Float64, y::Float64, z::Float64)
 
     R = sqrt(x*x + y*y)
 
-    fR = - _G * M_disk * R/(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2)
-    fz = - _G * M_disk * z * (sqrt(z^2 + b_disk^2) + a_disk)/(sqrt(z^2+b_disk^2)*(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2))
+    aR = - _G * M_disk * R/(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2)
+    az = - _G * M_disk * z * (sqrt(z^2 + b_disk^2) + a_disk)/(sqrt(z^2+b_disk^2)*(R^2 + (sqrt(z^2 + b_disk^2)+a_disk)^2)^(3/2))
 
-    Fx = mass * fR * x/R 
-    Fy = mass * fR * y/R 
-    Fz = mass * fz
+    ax = aR * x/R 
+    ay = aR * y/R 
 
-    return Fx, Fy, Fz
+    return ax, ay, az
+
+end
+
+function force_disk(x::Float64, y::Float64, z::Float64)
+
+    ax, ay, az = acc_disk(x, y, z)
+
+    Fx = mass * ax
+    Fy = mass * ay
+    Fz = mass * az
+
+    return Fx, Fy, Fz 
 
 end
 
@@ -130,16 +152,28 @@ function Menc_halo(r::Float64)
     
 end
 
-function force_halo(x::Float64, y::Float64, z::Float64)
+function acc_halo(x::Float64, y::Float64, z::Float64)
 
     r = sqrt(x*x + y*y + z*z)
 
     Menc = Menc_halo(r)
-    fr = - _G * Menc/r^2
+    ar = - _G * Menc/r^2
 
-    Fx = mass * fr * x/r
-    Fy = mass * fr * y/r
-    Fz = mass * fr * z/r
+    ax = ar * x/r
+    ay = ar * y/r
+    az = ar * z/r
+
+    return ax, ay, az 
+
+end
+
+function force_halo(x::Float64, y::Float64, z::Float64)
+
+    ax, ay, az = acc_halo(x, y, z)
+
+    Fx = mass * ax
+    Fy = mass * ay
+    Fz = mass * az
 
     return Fx, Fy, Fz 
 
@@ -176,6 +210,20 @@ end
 ####################################################################################
 # Total force
 ####################################################################################
+
+function acc_host(x::Float64, y::Float64, z::Float64)
+
+    ax_b, ay_b, az_b = acc_bulge(x, y, z)
+    ax_d, ay_d, az_d = acc_disk(x, y, z)
+    ax_h, ay_h, az_h = acc_halo(x, y, z)
+
+    ax = ax_h + ax_d + ax_b
+    ay = ay_h + ay_d + ay_b
+    az = az_h + az_d + az_b
+
+    return ax, ay, az 
+
+end
 
 function force_host(x::Float64, y::Float64, z::Float64)
 
