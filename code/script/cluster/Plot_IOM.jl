@@ -83,11 +83,11 @@ function plot_data()
 
 
     mkpath(path_data*"plot/")
-    namefile_pdf = path_data*"plot/IOM_king_"*srun*".pdf"
+    namefile_pdf = path_data*"plot/IOM_cluster__"*srun*".pdf"
     savefig(plt, namefile_pdf)
 
     mkpath(path_data*"plot/")
-    namefilep_pdf = path_data*"plot/bary_king_"*srun*".pdf"
+    namefilep_pdf = path_data*"plot/bary_cluster_"*srun*".pdf"
     savefig(pltb, namefilep_pdf)
 
 

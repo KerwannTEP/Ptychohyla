@@ -18,15 +18,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 2.00e-2
-    "--framerate"
-    help = "Number of frames per second"
-    arg_type = Int64
-    default = 60
+    default = 0.011839088782478026
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874519109785
+    default = 63874531748065
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -37,7 +33,6 @@ parsed_args = parse_args(tabargs)
 
 const Mtot_Msun = parsed_args["M_cluster"]
 const Rv_kpc = parsed_args["Rv_cluster"]
-const framepersec = parsed_args["framerate"]
 const run = parsed_args["run"]
 const Npart = parsed_args["N"]
 
@@ -137,7 +132,7 @@ function plot_data()
     datayc = sin(-theta) .* datax + cos(-theta) .* datay
 
 
-    rmax = 1 # kpc
+    rmax = 1.0 # kpc
     s = 1.0
 
     # https://docs.juliaplots.org/latest/generated/attributes_plot/
@@ -158,7 +153,7 @@ function plot_data()
             #xlabel=L"x"*" [pc]", ylabel=L"y"*" [pc]", 
             #framestyle=:box, 
             labels=:false,
-            #xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+            xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
             #aspect_ratio=1, size=(800,800), 
             #left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
             #background_color = :black,
@@ -167,7 +162,7 @@ function plot_data()
 
 
     mkpath(path_data*"plot/")
-    namefile_pdf = path_data*"plot/plummer_last_snapshot_center_"*srun*".pdf"
+    namefile_pdf = path_data*"plot/cluster_"*srun*"_last_snapshot_center.pdf"
     savefig(p, namefile_pdf)
 
 

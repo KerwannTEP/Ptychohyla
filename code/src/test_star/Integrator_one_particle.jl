@@ -12,11 +12,7 @@ function integrate_one_leapfrog!(tab_stars::Array{Float64})
    
 
     x, y, z, vx, vy, vz = tab_stars[:]
-    Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
-
-    ax = (Fx_host)
-    ay = (Fy_host)
-    az = (Fz_host)
+    ax, ay, az = acc_host(x, y, z) 
 
     dvx = dt/2 * ax
     dvy = dt/2 * ay
@@ -42,11 +38,8 @@ function integrate_one_leapfrog!(tab_stars::Array{Float64})
     # a_{k+1} = F(x_{k+1})
 
     x, y, z, vx, vy, vz = tab_stars[:]
-    Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
+    ax, ay, az = acc_host(x, y, z) 
 
-    ax = (Fx_host)
-    ay = (Fy_host)
-    az = (Fz_host)
 
     dvx = dt/2 * ax
     dvy = dt/2 * ay

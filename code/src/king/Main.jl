@@ -1,9 +1,9 @@
 include("Args.jl")
 include("Constants.jl")
-include("Host.jl")
+include("../Host.jl")
 include("Cluster.jl")
-include("Snapshots.jl")
-include("Integrator.jl")
+include("../Snapshots.jl")
+include("../Integrator.jl")
 
 
 function main()
