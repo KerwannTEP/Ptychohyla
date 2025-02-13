@@ -17,7 +17,7 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.011839088782478026
+    default = 0.01228105689696044
     "--framerate"
     help = "Number of frames per second"
     arg_type = Int64
@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874531748065
+    default = 63875130833127
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -80,7 +80,7 @@ function plot_data()
 
     # nsnap = 1000
 
-    anim = @animate for i=1:1:nsnap
+    anim = @animate for i=1:5:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -149,7 +149,7 @@ function plot_data()
         plot([0, -rmax/2.0],[0.0,0.0 ],
                 xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", 
                 framestyle=:box, labels=:false,
-                xlims=(-2*rmax, 2*rmax), ylims=(-3*rmax,3*rmax), 
+                xlims=(-rmax, rmax), ylims=(-2*rmax,2*rmax), 
                 aspect_ratio=1, size=(400,600), 
                 left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
                 background_color = :black,
@@ -161,7 +161,7 @@ function plot_data()
                 #xlabel=L"x"*" [pc]", ylabel=L"y"*" [pc]", 
                 #framestyle=:box, 
                 labels=:false,
-                xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+                xlims=(-rmax, rmax), ylims=(-2*rmax,2*rmax), 
                 aspect_ratio=1, size=(800,800), 
                 #left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
                 #background_color = :black,

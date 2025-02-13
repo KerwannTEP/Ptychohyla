@@ -17,7 +17,7 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.011839088782478026
+    default = 0.01228105689696044
     "--framerate"
     help = "Number of frames per second"
     arg_type = Int64
@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874531748065
+    default = 63875130833127
 
 end
 parsed_args = parse_args(tabargs)
@@ -67,7 +67,7 @@ function plot_data()
     p = sortperm(tab_time)
 
     # (x,y)
-    anim = @animate for i=1:1:nsnap
+    anim = @animate for i=1:5:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -99,7 +99,7 @@ function plot_data()
     gif(anim, namefile_gif, fps = framepersec)
 
     # (x,z)
-    anim = @animate for i=1:1:nsnap
+    anim = @animate for i=1:5:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]

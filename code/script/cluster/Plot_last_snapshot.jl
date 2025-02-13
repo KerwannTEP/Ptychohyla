@@ -17,11 +17,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.011839088782478026
+    default = 0.01228105689696044
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874531748065
+    default = 63875130833127
 
 end
 parsed_args = parse_args(tabargs)
@@ -83,6 +83,9 @@ function plot_data()
                 background_color = :black,
                 markersize=s, color=:white, 
                 title="t = "*string(time)*" Myr")
+
+    display(p)
+    readline()
 
 
     mkpath(path_data*"plot/")

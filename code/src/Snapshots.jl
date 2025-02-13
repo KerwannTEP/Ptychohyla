@@ -22,6 +22,7 @@ function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Fl
 
 end
 
+# TODO: Density center to compute ?
 function compute_bary!(tab_stars::Array{Float64}, tab_bary::Array{Float64})
 
     xb_t = zeros(Float64, Threads.nthreads())

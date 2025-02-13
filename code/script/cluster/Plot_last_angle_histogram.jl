@@ -5,7 +5,6 @@ using Plots.PlotMeasures
 using ArgParse
 using NearestNeighbors
 
-
 ##################################################
 # Parsing of the command-line arguments
 ##################################################
@@ -47,7 +46,9 @@ const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr #
 
 const srun = string(run)
 
-function plot_data()
+const nb_neigh = 6
+
+function get_data()
 
     if (isfile(path_data*"snapshots_"*srun*"/.DS_Store"))
         rm(path_data*"snapshots_"*srun*"/.DS_Store")
@@ -71,19 +72,29 @@ function plot_data()
     data = readdlm(namefile, header=false)
     interm = split(split(namefile,"_")[end],".")
     time = parse(Float64, interm[1]*"."*interm[2]) * T_HU_in_Myr
-    time = round(time, digits=1)
 
     tab_pos = zeros(Float64, 3, Npart)
-    tab_dens = zeros(Float64, Npart)
 
     nb_neigh = 6
 
 
-    tab_pos[1, :] = data[:, 1] .* R_HU_in_kpc * 1.0 # In parsecs
-    tab_pos[2, :] = data[:, 2] .* R_HU_in_kpc * 1.0 # In parsecs
+    tab_pos[1, :] = data[:, 1] .* R_HU_in_kpc * 1.0
+    tab_pos[2, :] = data[:, 2] .* R_HU_in_kpc * 1.0
     tab_pos[3, :] = data[:, 3] .* R_HU_in_kpc * 1.0
+
+    return tab_pos, time
+end
+
+
+
+function compute_tab_delta_phi()
+
+    tab_pos, time = get_data()
+    
     # Compute density centre
     # Recentre
+    tab_dens = zeros(Float64, Npart)
+
 
     tree_neigh = KDTree(tab_pos)
 
@@ -120,56 +131,101 @@ function plot_data()
 
     Xc /= rho_tot # Rescaling the centre's position
     Yc /= rho_tot # Rescaling the centre's position
+
+    println("(Xc,Yc) = ",(Xc, Yc))
+
+    phi_avg = atan(Yc, Xc)
+
+    tab_delta_phi = zeros(Float64, Npart)
+
+    Threads.@threads for i=1:Npart
+        x = tab_pos[1,i]
+        y = tab_pos[2,i]
+
+        phi = atan(y, x)
+        tab_delta_phi[i] = ((phi - phi_avg) * 180.0/pi)
+
+        if (180 <= tab_delta_phi[i] <= 360.0)
+            tab_delta_phi[i] = -(360.0 - tab_delta_phi[i])
+        end
+        # tab_delta_phi[i] = (phi ) * 180.0/pi
+    end
+
+    return tab_delta_phi, time
+
+end
+
+function compute_histo(phi_max::Float64, dphi::Float64=1.0)
+
+    tab_delta_phi, time = compute_tab_delta_phi()
+    nb_phi_pos = floor(Int64, phi_max/dphi)
+    nb_phi = 2 * nb_phi_pos
+
+    tab_dphi = [-phi_max + dphi * (i-0.5) for i=1:nb_phi]
+    tab_count = zeros(Float64, nb_phi)
+
+    # phi_i <= phi < phi_{i+1}
+
+    for k=1:Npart 
+        phi = tab_delta_phi[k]
+
+        # -phi_max + dphi * (i-0.5) <= phi < -phi_max + dphi * (i+0.5)
+        # dphi * (i-0.5) <= phi + phi_max < dphi * (i+0.5)
+        # i <= (phi + phi_max)/dphi + 0.5 < i+1
+
+        i = floor(Int64, (phi + phi_max)/ dphi + 0.5)
+
+        if (1 <= i <= nb_phi) 
+            tab_count[i] += 1.0
+        end
+    end
+
+    for i=1:nb_phi
+
+        if(tab_count[i] == 0.0)
+
+            tab_count[i] = 0.001
+
+        end
+
+    end
+
+
+    return tab_dphi, tab_count, time
+
+end
+
+function plot_delta_phi(delta_phi_max::Float64, dphi::Float64=1.0)
+
+    tab_dphi, tab_count, time = compute_histo(delta_phi_max, dphi)
+    time = round(time, digits=1)
+
+    p = plot(tab_dphi, [tab_count],
+            yaxis=:log10, 
+            xlims=(-delta_phi_max, delta_phi_max),
+            ylims=(0.1, 10^4),
+            frame=:box, label=:false, 
+            linetype=:steppost,
+            xticks=-180:20:180,
+            xlabel=L"\Delta \phi"*" [deg]", ylabel="Count",
+            title="t = "*string(time)*" Myr")
     
-    datax = tab_pos[1, :] .- Xc
-    datay = tab_pos[2, :] .- Yc
-
-    theta = atan(Yc, Xc)
-
-
-
-    dataxc = cos(-theta) .* datax - sin(-theta) .* datay
-    datayc = sin(-theta) .* datax + cos(-theta) .* datay
-
-
-    rmax = 1.0 # kpc
-    s = 1.0
-
-    # https://docs.juliaplots.org/latest/generated/attributes_plot/
-    # https://stackoverflow.com/questions/71992758/size-and-colour-in-julia-scatter-plot
-
-    p = plot([0, -rmax/2.0],[0.0,0.0 ],
-                xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", 
-                framestyle=:box, labels=:false,
-                xlims=(-2*rmax, 2*rmax), ylims=(-3*rmax,3*rmax), 
-                aspect_ratio=1, size=(400,600), 
-                left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
-                background_color = :black,
-                #markersize=s, color=:white, 
-                title="t = "*string(time)*" Myr",
-                arrow=true,color=:red,linewidth=2,label=:false)
-
-    scatter!(p, dataxc, datayc, 
-            #xlabel=L"x"*" [pc]", ylabel=L"y"*" [pc]", 
-            #framestyle=:box, 
-            labels=:false,
-            xlims=(-rmax, rmax), ylims=(-2*rmax,2*rmax), 
-            #aspect_ratio=1, size=(800,800), 
-            #left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
-            #background_color = :black,
-            markersize=s, color=:white)#, 
-            #title="t = "*string(time)*" Myr")
+    # p = histogram(tab_delta_phi, 
+    #             yaxis=:log10, 
+    #             xlims=(-delta_phi_max, delta_phi_max),
+    #             ylims=(0.1, 10^3),
+    #             frame=:box, label=:false, 
+    #             # normalize=:pdf,
+    #             xlabel=L"\Delta \phi"*" [deg]", ylabel="Count",
+    #             title="t = "*string(time)*" Myr")
 
     display(p)
     readline()
 
-
     mkpath(path_data*"plot/")
-    namefile_pdf = path_data*"plot/cluster_"*srun*"_last_snapshot_center.pdf"
+    namefile_pdf = path_data*"plot/angles_cluster_"*srun*".pdf"
     savefig(p, namefile_pdf)
-
 
 end
 
-@time plot_data()
-
+plot_delta_phi(180.0, 1.0)

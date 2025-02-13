@@ -18,11 +18,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.011839088782478026
+    default = 0.01228105689696044
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874531748065
+    default = 63875130833127
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -70,11 +70,12 @@ function plot_data()
     readline()
 
     datab=readdlm(path_data*"bary_snapshots_"*srun*".txt")
+    rmax = 10.0
 
     pltb = plot(datab[:,2] .* R_HU_in_kpc, [datab[:,3]] .* R_HU_in_kpc, 
-            xlims=(-5,5), ylims=(-5,5), 
+            xlims=(-rmax,rmax), ylims=(-rmax,rmax), 
             aspect_ratio=1, 
-            xticks=-5:1:5, yticks=-5:1:5, 
+            # xticks=-5:1:5, yticks=-5:1:5, 
             frame=:box, label=:false, 
             xlabel="x [kpc]", ylabel="y [kpc]")
 
@@ -93,4 +94,38 @@ function plot_data()
 
 end
 
-@time plot_data()
+function plot_data_fractional()
+
+    data=readdlm(path_data*"iom_snapshots_"*srun*".txt")
+
+    
+    dataE = data[:,4]
+    dataLz = data[:,7]
+    n = length(dataE)
+
+    datat = data[2:n,1] .* T_HU_in_Myr
+    dataFracE = abs.(1.0 .- dataE[2:n] ./ dataE[1])
+    # dataFracLz = abs.(1.0 .- dataLz[2:n] ./ dataLz[1])
+
+    # display(dataFracLz)
+
+    plt = plot(datat, [dataFracE], 
+        labels=:false, 
+        xlabel="Time [Myr]", 
+        ylabel="Fractional energy", 
+        yaxis=:log10,
+        yticks=10.0 .^ (-15:1:0),
+        xlims=(0, datat[n-1]),
+        frame=:box)
+
+    display(plt)
+    readline()
+
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/IOM_frac_cluster_"*srun*".pdf"
+    savefig(plt, namefile_pdf)
+
+end
+
+# @time plot_data()
+@time plot_data_fractional()
