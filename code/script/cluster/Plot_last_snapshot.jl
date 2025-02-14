@@ -71,10 +71,34 @@ function plot_data()
     rmax = 5.0 # kpc
     s = 1.0
 
+    # Plot circular orbit 
+    d_c = 4.0 # kpc
+
+    nba = 200
+    tab_ang = range(0, 2*pi, length=200)
+    tab_orbit = zeros(Float64, nba, 2)
+
+    for i=1:nba 
+        phi = tab_ang[i]
+        tab_orbit[i, 1] = d_c * cos(phi)
+        tab_orbit[i, 2] = d_c * sin(phi)
+    end
+
+    p = plot(tab_orbit[:,1] , tab_orbit[:, 2], 
+                xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", 
+                framestyle=:box, labels="Circular orbit", 
+                legend=:topright,
+                xlims=(-rmax, rmax), ylims=(-rmax,rmax), 
+                aspect_ratio=1, size=(800,800), 
+                left_margin = [2mm 0mm], right_margin = [2mm 0mm], 
+                background_color = :black,
+                linestyle=:dash,
+                markersize=s, color=:red)
+
     # https://docs.juliaplots.org/latest/generated/attributes_plot/
     # https://stackoverflow.com/questions/71992758/size-and-colour-in-julia-scatter-plot
 
-    p = scatter(data[:,1] .* R_HU_in_kpc, data[:, 2] .* R_HU_in_kpc , 
+    scatter!(p, data[:,1] .* R_HU_in_kpc, data[:, 2] .* R_HU_in_kpc , 
                 xlabel=L"x"*" [kpc]", ylabel=L"y"*" [kpc]", 
                 framestyle=:box, labels=:false, 
                 xlims=(-rmax, rmax), ylims=(-rmax,rmax), 

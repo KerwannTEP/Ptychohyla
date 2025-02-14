@@ -1,47 +1,37 @@
+function tab_acc_U!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
 
-function integrate_stars_euler!(tab_stars::Array{Float64})
-
-    # Integrate each star
-    # N-body forces + Host potential
-
-    
-    # Euler integration
+    tab_U_t = zeros(Float64, Threads.nthreads())
 
     Threads.@threads for i=1:Npart 
+        tid = Threads.threadid()
 
         x, y, z, vx, vy, vz = tab_stars[i, :]
-        ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars)
+        ax_internal, ay_internal, az_internal, U_internal = acc_U_internal(i, tab_stars)
         ax_host, ay_host, az_host = acc_host(x, y, z) 
 
         ax = ax_internal + ax_host
         ay = ay_internal + ay_host
         az = az_internal + az_host
 
-        
-        dx = dt * vx
-        dy = dt * vy 
-        dz = dt * vz
-        dvx = dt * ax
-        dvy = dt * ay
-        dvz = dt * az
+        tab_acc[i, 1] = ax
+        tab_acc[i, 2] = ay
+        tab_acc[i, 3] = az
 
-        tab_stars[i, 1] = x + dx
-        tab_stars[i, 2] = y + dy
-        tab_stars[i, 3] = z + dz
-        tab_stars[i, 4] = vx + dvx
-        tab_stars[i, 5] = vy + dvy
-        tab_stars[i, 6] = vz + dvz
-
+        tab_U_t[tid] += U_internal
     end
 
+    U_int = 0.0
+    for tid=1:Threads.nthreads()
+        U_int += tab_U_t[tid]
+    end
 
-    return nothing
+    U_int *= 0.5
+
+    return U_int
 
 end
 
-
-
-function integrate_stars_leapfrog!(tab_stars::Array{Float64})
+function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, first_timestep::Bool=false)
 
     # Integrate each star
     # N-body forces + Host potential
@@ -54,16 +44,27 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
 
     # v_{k} -> v_{k+1/2} = v_{k} + a_{k}*dt/2
     # a_{k} = F(x_{k})
+
+    U_int = 0.0
+
+    if (first_timestep)
+        U_int = tab_acc_U!(tab_stars_temp, tab_acc)
+        first_timestep = false 
+    end
+
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
-        ax_host, ay_host, az_host = acc_host(x, y, z) 
+        # ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
+        # ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        ax = ax_internal + ax_host
-        ay = ay_internal + ay_host
-        az = az_internal + az_host
+        # ax = ax_internal + ax_host
+        # ay = ay_internal + ay_host
+        # az = az_internal + az_host
 
+        ax = tab_acc[i, 1]
+        ay = tab_acc[i, 2]
+        az = tab_acc[i, 3]
 
         dvx = dt/2 * ax
         dvy = dt/2 * ay
@@ -96,15 +97,22 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
 
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})
+
+    U_int = tab_acc_U!(tab_stars_temp, tab_acc)
+
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
-        ax_host, ay_host, az_host = acc_host(x, y, z) 
+        # ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
+        # ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        ax = ax_internal + ax_host
-        ay = ay_internal + ay_host
-        az = az_internal + az_host
+        # ax = ax_internal + ax_host
+        # ay = ay_internal + ay_host
+        # az = az_internal + az_host
+
+        ax = tab_acc[i, 1]
+        ay = tab_acc[i, 2]
+        az = tab_acc[i, 3]
 
         dvx = dt/2 * ax
         dvy = dt/2 * ay
@@ -117,9 +125,8 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
     end
 
 
-    
 
-    return nothing
+    return U_int
 
 end
 

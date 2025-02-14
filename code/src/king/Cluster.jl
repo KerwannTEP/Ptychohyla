@@ -76,6 +76,48 @@ function acc_internal(k::Int64, tab_stars::Array{Float64})
 
 end
 
+
+function acc_U_internal(k::Int64, tab_stars::Array{Float64})
+
+    ax = 0.0
+    ay = 0.0
+    az = 0.0
+    U = 0.0
+
+    xk = tab_stars[k,1]
+    yk = tab_stars[k,2]
+    zk = tab_stars[k,3]
+
+    for i=1:Npart
+        if (i != k)
+
+            xi = tab_stars[i,1]
+            yi = tab_stars[i,2]
+            zi = tab_stars[i,3]
+
+            # Vector ri - rk
+            xik = xi - xk 
+            yik = yi - yk 
+            zik = zi - zk 
+
+            rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
+
+            intensity = _G*mass/rik^3 
+            intensityU = - _G*mass/rik
+
+            ax += intensity * xik
+            ay += intensity * yik
+            az += intensity * zik
+            U += intensityU
+
+        end
+
+    end
+
+    return ax, ay, az, U
+
+end
+
 # force on star k from all other stars
 # tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
 function force_internal(k::Int64, tab_stars::Array{Float64})

@@ -58,7 +58,7 @@ function compute_bary!(tab_stars::Array{Float64}, tab_bary::Array{Float64})
 end
 
 
-function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
+function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64}, first_timestep::Bool=false, U_int::Float64=0.0)
 
     # tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L
 
@@ -94,52 +94,68 @@ function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
 
     end
 
-    Threads.@threads for i=1:Npart
-
-        tid = Threads.threadid()
-
-        Ui = 0.0 # 1/2 sum_{j != i} G mi mj/rij
-
-        # Cluster interaction potential energy 
-
-        xi = tab_stars[i,1]
-        yi = tab_stars[i,2]
-        zi = tab_stars[i,3]
-
-        for j=1:Npart
-            if (j != i)
-    
-                xj = tab_stars[j,1]
-                yj = tab_stars[j,2]
-                zj = tab_stars[j,3]
-    
-                # Vector ri - rj
-                xij = xi - xj 
-                yij = yi - yj 
-                zij = zi - zj 
-    
-                rij = sqrt(xij^2 + yij^2 + zij^2 + eps^2)
-    
-                Ui -= _G*mass*mass/rij
-
-            end
-    
-        end
-
-        Uc_t[tid] += 0.5 * Ui
-
-    end
-
     K = 0.0
     Uh = 0.0
     Uc = 0.0
     L = zeros(Float64, 3)
 
+    if (first_timestep)
+
+        Threads.@threads for i=1:Npart
+
+            tid = Threads.threadid()
+
+            Ui = 0.0 # 1/2 sum_{j != i} G mi mj/rij
+
+            # Cluster interaction potential energy 
+
+            xi = tab_stars[i,1]
+            yi = tab_stars[i,2]
+            zi = tab_stars[i,3]
+
+            for j=1:Npart
+                if (j != i)
+        
+                    xj = tab_stars[j,1]
+                    yj = tab_stars[j,2]
+                    zj = tab_stars[j,3]
+        
+                    # Vector ri - rj
+                    xij = xi - xj 
+                    yij = yi - yj 
+                    zij = zi - zj 
+        
+                    rij = sqrt(xij^2 + yij^2 + zij^2 + eps^2)
+        
+                    Ui -= _G*mass*mass/rij
+
+                end
+        
+            end
+
+            Uc_t[tid] += 0.5 * Ui
+
+        end
+
+        for tid=1:Threads.nthreads()
+
+            Uc += Uc_t[tid]
+
+        end
+
+    else 
+
+        Uc = U_int
+
+    end
+
+    
+
     for tid=1:Threads.nthreads()
 
         K += K_t[tid]
         Uh += Uh_t[tid]
-        Uc += Uc_t[tid]
+        # Uc += Uc_t[tid]
         L[1] += L_t[tid, 1]
         L[2] += L_t[tid, 2]
         L[3] += L_t[tid, 3]
