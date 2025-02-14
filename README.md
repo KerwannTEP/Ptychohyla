@@ -5,22 +5,16 @@ Leapfrog integrator for (stellar) stream
 
 This repository aims to evolve a set of self-gravitating Plummer globular clusters under the influence of a host potential, in order to study the creation of stellar streams.
 
-## Generation of initial conditions
-
-TODO: Characteristics of the clusters
-
-The generation of initial conditions is done using the [PlummerPlus.py](https://github.com/michael-petersen/PlummerPlus) python package, in `code/IC_generator`. One can generate a set of initial conditions by modifying the bash script, `generate_IC_Plummer.sh`, which creates a text datafile in the folder `data_IC` (TODO).
-
 ## Installation
 
-Install Julia by following the instruction at `https://julialang.org/downloads/platform/`.
+Install Julia by following the instructions at `https://julialang.org/downloads/platform/`.
 
 To invoke Julia in the Terminal, you need to make sure that the julia command-line program is in your `PATH`. 
 
-On MacOS, we must create a link in `/usr/local/bin` (here for Julia 1.5):
+On MacOS, we must create a link in `/usr/local/bin` (here for Julia 1.8):
 
 ```
-$ sudo ln -s /Applications/Julia-1.5.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia
+$ sudo ln -s /Applications/Julia-1.8.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia
 ```
 
 ## Julia packages
@@ -33,13 +27,61 @@ $ julia Install_pkg.jl
 
 to install the necessary packages.
 
+## Local Julia environment
+
+One may create a local Julia environment by following the instructions at `https://jkrumbiegel.com/pages/2022-08-26-pkg-introduction/`.
+
+One can create a local environment called `LocalEnv` by following the next instructions. First, open `Julia` on the console.
+
+```
+$ module load julia/1.8.0
+$ julia
+```
+
+Then, open the Pkg mode and create the local environment
+
+```
+julia> ]
+(@v1.8) pkg> generate LocalEnv
+```
+
+
+One may import packages within that local environment by following the instructions at `https://pkgdocs.julialang.org/v1/environments/`.
+
+First, go to the folder containing `LocalEnv/` and open Julia. Then, add the packages (here, `SpecialFunctions`) in Pkg mode after activating the local environment.
+
+```
+julia> ]
+(@v1.8) pkg> activate LocalEnv
+(LocalEnv) pkg> add SpecialFunctions
+```
+
+One may also deactivate the local environment by writing in Pkg mode
+
+```
+(LocalEnv) pkg> activate
+```
+
+Alternatively, one may activate the local environment without having to switch to Pkg mode by writing 
+
+```
+julia> using Pkg; Pkg.activate("LocalEnv")
+```
+
+Similarly, deactivating the local environment can by done through the line
+
+```
+julia> using Pkg; Pkg.activate()
+```
+
+
 
 ## Integration
 
-One may both generate the IC and perform a run by going to the `job` folder and launching the bash script
+One may perform a run for a King sphere by going to the `job` folder and launching the bash script
 
 ```
-$ bash job_stream_run.sh
+$ bash job_stream_king_run.sh
 ```
 
 One may modify the run's parameters within the bash script file.

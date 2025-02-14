@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=stream
-#SBATCH --partition=compl
+#SBATCH --partition=pscompl
 #SBATCH --nodelist=j01
 #SBATCH --ntasks-per-node=40
-#SBATCH --time=4-04:00:00
-#SBATCH --mem=200G
+#SBATCH --time=2-00:00:00
+#SBATCH --mem=10G
 #SBATCH --output=./log/stream_king.out
 #SBATCH --mail-type=TIME_LIMIT,END
 #SBATCH --mail-user=tep@iap.fr
