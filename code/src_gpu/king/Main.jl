@@ -21,7 +21,7 @@ function main()
 
     index = 0
 
-    mkpath(path_dir*"data/snapshots_"*srun*"/")
+    mkpath(folder_output*"snapshots_"*srun*"/")
 
     tab_acc = zeros(Float64, Npart, 3)  
 
@@ -29,27 +29,26 @@ function main()
     while (time < time_end)
         
 
-        compute_IOM!(tab_stars, tab_IOM)
-        compute_bary!(tab_stars, tab_bary)
+        # compute_IOM!(tab_stars, tab_IOM)
+        # compute_bary!(tab_stars, tab_bary)
 
 
         # Snapshots 
         if (index % N_dt == 0)
             write_data!(time, tab_stars, tab_IOM, tab_bary)
-            println("Progress = ", round(time/time_end, digits=4), " | Energy = ", tab_IOM[3])
+            # println("Progress = ", round(time/time_end, digits=4), " | Energy = ", tab_IOM[3])
       
         end
 
         integrate_stars_leapfrog!(tab_stars, tab_acc)
-        # integrate_stars_yoshida!(tab_stars)
         time += dt
         index += 1
 
     end
 
     # Last snapshot
-    compute_IOM!(tab_stars, tab_IOM)
-    compute_bary!(tab_stars, tab_bary)
+    # compute_IOM!(tab_stars, tab_IOM)
+    # compute_bary!(tab_stars, tab_bary)
     write_data!(time, tab_stars, tab_IOM, tab_bary)
 
     time_end = now()

@@ -2,6 +2,8 @@ using ArgParse
 
 # https://github.com/carlrodriguez/CHC/blob/mw2014/src/potential/host_potential/static_analytic_potential/host_potential.h
 
+const folder_dir = @__DIR__ 
+
 ##################################################
 # Parsing of the command-line arguments
 ##################################################
@@ -87,6 +89,11 @@ tabargs = ArgParseSettings()
     help = "Number of threads per blocks (GPU)"
     arg_type = Int64
     default = 1024
+
+    "--folder_output"
+    help = "Output folder of the data"
+    arg_type = String
+    default = folder_dir  * "/../../../data/"
 end
 parsed_args = parse_args(tabargs)
 
@@ -116,3 +123,5 @@ const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
 
 const nbThreadsPerBlocks = parsed_args["nbThreadsPerBlocks"]
+
+const folder_output = parsed_args["folder_output"]
