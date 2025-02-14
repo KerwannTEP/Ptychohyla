@@ -22,7 +22,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875130833127
+    default = 63875213898039
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -127,5 +127,33 @@ function plot_data_fractional()
 
 end
 
-# @time plot_data()
 @time plot_data_fractional()
+
+function plot_unbound()
+
+    data=readdlm(path_data*"iom_snapshots_"*srun*".txt")
+
+    dataUnbound = data[:,9]
+    n = length(dataUnbound)
+
+    datat = data[:,1] .* T_HU_in_Myr
+
+    plt = plot(datat, [dataUnbound ./ Npart .* 100], 
+        labels=:false, 
+        xlabel="Time [Myr]", 
+        ylabel="Fraction of unbound stars [%]", 
+        # yaxis=:log10,
+        # yticks=10.0 .^ (-15:1:0),
+        xlims=(0, datat[n-1]),
+        frame=:box)
+
+    display(plt)
+    readline()
+
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/count_unbound_cluster_"*srun*".pdf"
+    savefig(plt, namefile_pdf)
+
+end
+
+@time plot_unbound()

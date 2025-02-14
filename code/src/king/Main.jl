@@ -9,7 +9,7 @@ include("../Integrator.jl")
 function main()
 
     tab_stars = zeros(Float64, Npart,6) # (x, y, z, vx, vy, vz)
-    tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L
+    tab_IOM = zeros(Float64, 8) # K, U, Etot, Lx, Ly, Lz, L, nb_unbounds
     time = 0.0
     initialize_stars!(tab_stars)
 
@@ -23,12 +23,13 @@ function main()
 
     first_timestep = true
     tab_acc = zeros(Float64, Npart,3)
+    tab_Uint = zeros(Float64, Npart)
 
     while (time < time_end)
         
         if (first_timestep)
 
-            compute_IOM!(tab_stars, tab_IOM, true)
+            compute_IOM!(tab_stars, tab_IOM, tab_Uint, true)
             compute_bary!(tab_stars, tab_bary)
 
         end
@@ -41,12 +42,12 @@ function main()
       
         end
 
-        U_int = integrate_stars_leapfrog!(tab_stars, tab_acc, first_timestep)
+        integrate_stars_leapfrog!(tab_stars, tab_acc, tab_Uint, first_timestep)
         # integrate_stars_yoshida!(tab_stars)
         time += dt
         index += 1
 
-        compute_IOM!(tab_stars, tab_IOM, false, U_int)
+        compute_IOM!(tab_stars, tab_IOM, tab_Uint, false)
         compute_bary!(tab_stars, tab_bary)
 
     end

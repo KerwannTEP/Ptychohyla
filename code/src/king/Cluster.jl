@@ -114,6 +114,8 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
 
     end
 
+
+
     return ax, ay, az, U
 
 end

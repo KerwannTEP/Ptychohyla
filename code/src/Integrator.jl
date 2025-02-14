@@ -1,6 +1,4 @@
-function tab_acc_U!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
-
-    tab_U_t = zeros(Float64, Threads.nthreads())
+function tab_acc_U!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64})
 
     Threads.@threads for i=1:Npart 
         tid = Threads.threadid()
@@ -17,21 +15,14 @@ function tab_acc_U!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
         tab_acc[i, 2] = ay
         tab_acc[i, 3] = az
 
-        tab_U_t[tid] += U_internal
+        tab_Uint[i] = U_internal
+
     end
 
-    U_int = 0.0
-    for tid=1:Threads.nthreads()
-        U_int += tab_U_t[tid]
-    end
-
-    U_int *= 0.5
-
-    return U_int
 
 end
 
-function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, first_timestep::Bool=false)
+function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, first_timestep::Bool=false)
 
     # Integrate each star
     # N-body forces + Host potential
@@ -45,10 +36,8 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
     # v_{k} -> v_{k+1/2} = v_{k} + a_{k}*dt/2
     # a_{k} = F(x_{k})
 
-    U_int = 0.0
-
     if (first_timestep)
-        U_int = tab_acc_U!(tab_stars_temp, tab_acc)
+        tab_acc_U!(tab_stars_temp, tab_acc, tab_Uint)
         first_timestep = false 
     end
 
@@ -98,7 +87,7 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})
 
-    U_int = tab_acc_U!(tab_stars_temp, tab_acc)
+    tab_acc_U!(tab_stars_temp, tab_acc, tab_Uint)
 
     Threads.@threads for i=1:Npart 
 
@@ -124,9 +113,6 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
 
     end
 
-
-
-    return U_int
 
 end
 
