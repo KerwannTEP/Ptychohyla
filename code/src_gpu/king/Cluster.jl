@@ -42,9 +42,7 @@ end
 # Compute IOM separately
 # https://developer.nvidia.com/gpugems/gpugems3/part-v-physics-simulation/chapter-31-fast-n-body-simulation-cuda
 function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceArray{T}, tab_pos_z::CuDeviceArray{T}, 
-                            tab_acc_x::CuDeviceArray{T}, tab_acc_y::CuDeviceArray{T}, tab_acc_z::CuDeviceArray{T}, 
-                            tab_Uint::CuDeviceArray{T}, 
-                            tab_potential_energy_blocks::CuDeviceArray{T}, nbThreadsPerBlocks::Int64, N::Int64, nbPairs::Int64) where T
+                            tab_acc_x::CuDeviceArray{T}, tab_acc_y::CuDeviceArray{T}, tab_acc_z::CuDeviceArray{T}) where T
 
 
     # We are within a thread, within a block 
@@ -65,9 +63,9 @@ function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceAr
     tile = 1
     i = 1
 
-    shPositionX = CuDynamicSharedArray(T, nbThreadsPerBlocks)
-    shPositionY = CuDynamicSharedArray(T, nbThreadsPerBlocks)
-    shPositionZ = CuDynamicSharedArray(T, nbThreadsPerBlocks)
+    shPositionX = CuDynamicSharedArray(T, blockDim().x)
+    shPositionY = CuDynamicSharedArray(T, blockDim().x)
+    shPositionZ = CuDynamicSharedArray(T, blockDim().x)
 
     # Interaction of the star with the N stars of the clusters (include itself)
     while (i <= Npart)
@@ -145,10 +143,7 @@ function tab_acc_int_gpu!(tab_acc::Array{Float64}, tab_pos::Array{Float64})
     # dev_tab_potential_energy_block = CuArray(zeros(Float64, numblocks))
 
     @cuda threads=nbThreadsPerBlocks blocks=numblocks shmem=3*nbThreadsPerBlocks*sizeof(Float64) compute_acc_int_gpu!(dev_tab_pos_x, dev_tab_pos_y, dev_tab_pos_z,
-                                                                                                                dev_tab_acc_x, dev_tab_acc_y, dev_tab_acc_z,
-                                                                                                                dev_tab_Uint,
-                                                                                                                dev_tab_potential_energy_block, nbThreadsPerBlocks, Npart, nbPairs)
-
+                                                                                                                dev_tab_acc_x, dev_tab_acc_y, dev_tab_acc_z)
 
 
     tab_acc_x = Array(dev_tab_acc_x)
