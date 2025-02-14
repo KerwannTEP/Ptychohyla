@@ -7,7 +7,7 @@ This repository aims to evolve a set of self-gravitating Plummer globular cluste
 
 ## Installation
 
-Install Julia by following the instructions at `https://julialang.org/downloads/platform/`.
+Install Julia by following the instructions at [https://julialang.org/downloads/platform/](https://julialang.org/downloads/platform/).
 
 To invoke Julia in the Terminal, you need to make sure that the julia command-line program is in your `PATH`. 
 
@@ -29,7 +29,7 @@ to install the necessary packages.
 
 ## Local Julia environment
 
-One may create a local Julia environment by following the instructions at `https://jkrumbiegel.com/pages/2022-08-26-pkg-introduction/`.
+One may create a local Julia environment by following the instructions at [https://jkrumbiegel.com/pages/2022-08-26-pkg-introduction/](https://jkrumbiegel.com/pages/2022-08-26-pkg-introduction/).
 
 One can create a local environment called `LocalEnv` by following the next instructions. First, open `Julia` on the console.
 
@@ -46,7 +46,7 @@ julia> ]
 ```
 
 
-One may import packages within that local environment by following the instructions at `https://pkgdocs.julialang.org/v1/environments/`.
+One may import packages within that local environment by following the instructions at [https://pkgdocs.julialang.org/v1/environments/](https://pkgdocs.julialang.org/v1/environments/).
 
 First, go to the folder containing `LocalEnv/` and open Julia. Then, add the packages (here, `SpecialFunctions`) in Pkg mode after activating the local environment.
 
