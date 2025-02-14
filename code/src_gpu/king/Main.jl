@@ -23,6 +23,9 @@ function main()
 
     mkpath(path_dir*"data/snapshots_"*srun*"/")
 
+    tab_acc = zeros(Float64, Npart, 3)  
+
+
     while (time < time_end)
         
 
@@ -37,7 +40,7 @@ function main()
       
         end
 
-        integrate_stars_leapfrog!(tab_stars)
+        integrate_stars_leapfrog!(tab_stars, tab_acc)
         # integrate_stars_yoshida!(tab_stars)
         time += dt
         index += 1

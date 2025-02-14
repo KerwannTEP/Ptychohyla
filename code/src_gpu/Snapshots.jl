@@ -58,6 +58,8 @@ function compute_bary!(tab_stars::Array{Float64}, tab_bary::Array{Float64})
 end
 
 # Compute along force calculation for efficiency
+# GPU acceleration for Uint 
+# Use IOM julia script from NbodyPostTreatment folder
 function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
 
     # tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L

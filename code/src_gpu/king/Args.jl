@@ -82,6 +82,11 @@ tabargs = ArgParseSettings()
     help = "Softening length"
     arg_type = Float64
     default = 0.001
+
+    "--nbThreadsPerBlocks"
+    help = "Number of threads per blocks (GPU)"
+    arg_type = Int64
+    default = 1024
 end
 parsed_args = parse_args(tabargs)
 
@@ -109,3 +114,5 @@ const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
+
+const nbThreadsPerBlocks = parsed_args["nbThreadsPerBlocks"]

@@ -103,7 +103,7 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
             rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
 
             intensity = _G*mass/rik^3 
-            intensityU = - _G*mass/rik
+            intensityU = - _G*mass*mass/rik
 
             ax += intensity * xik
             ay += intensity * yik

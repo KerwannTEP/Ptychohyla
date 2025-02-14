@@ -1,12 +1,18 @@
 # adapt for gpu 
-function integrate_stars_leapfrog!(tab_stars::Array{Float64})
+# todo
+function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
 
     # Integrate each star
     # N-body forces + Host potential
 
     tab_stars_temp = tab_stars
 
-    
+    tab_acc_int_gpu!(tab_acc,tab_stars_temp[:, 1:3])
+    # Add the contribution from the host 
+
+
+
+
     # Leapfrog 
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
 
@@ -51,6 +57,7 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64})
     end
 
     tab_stars_temp = tab_stars
+
 
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})
