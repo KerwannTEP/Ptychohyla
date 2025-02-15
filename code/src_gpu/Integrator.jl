@@ -18,7 +18,7 @@ function update_tab_acc!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
 end
 
 
-function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
+function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, first_timestep::Bool)
 
     # Integrate each star
     # N-body forces + Host potential
@@ -27,7 +27,10 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
 
     tab_stars_temp = tab_stars
-    update_tab_acc!(tab_stars_temp, tab_acc)
+
+    if (first_timestep)
+        update_tab_acc!(tab_stars_temp, tab_acc)
+    end
 
     # v_{k} -> v_{k+1/2} = v_{k} + a_{k}*dt/2
     # a_{k} = F(x_{k})

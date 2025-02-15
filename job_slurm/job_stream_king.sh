@@ -4,9 +4,9 @@
 #SBATCH --gres=gpu
 #SBATCH --exclusive
 #SBATCH --time=2-00:00:00
-#SBATCH --output=./log/stream_king.out
-#SBATCH --mail-type=TIME_LIMIT,END
-#SBATCH --mail-user=tep@iap.fr
+#SBATCH --output=./stream_king.out
+#SBATCH --mail-type=TIME_LIMIT,END,FAIL
+#SBATCH --mail-user=<your email>
 
 module purge
 module load julia/1.9.3

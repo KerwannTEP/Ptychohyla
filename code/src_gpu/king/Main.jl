@@ -1,4 +1,4 @@
-#using Pkg; Pkg.activate("../../../packages/julia_1-9-3/JuEnvGPU")
+using Pkg; Pkg.activate("../../../packages/julia_1-9-3/JuEnvGPU")
 
 println("Nb threads = ", Threads.nthreads())
 
@@ -31,6 +31,8 @@ function main()
 
     tab_acc = zeros(Float64, Npart, 3)  
 
+    first_timestep = true
+
 
     while (time < time_end)
         
@@ -46,9 +48,13 @@ function main()
       
         end
 
-        integrate_stars_leapfrog!(tab_stars, tab_acc)
+        integrate_stars_leapfrog!(tab_stars, tab_acc, first_timestep)
         time += dt
         index += 1
+
+        if (first_timestep)
+            first_timestep = false
+        end
 
     end
 
