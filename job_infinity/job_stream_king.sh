@@ -1,10 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=stream
-#SBATCH --partition=pscompl
-#SBATCH --nodelist=j01
-#SBATCH --ntasks-per-node=40
+#SBATCH --partition=pscomp
+#SBATCH --gres=gpu
+#SBATCH --exclusive
 #SBATCH --time=2-00:00:00
-#SBATCH --mem=10G
 #SBATCH --output=./log/stream_king.out
 #SBATCH --mail-type=TIME_LIMIT,END
 #SBATCH --mail-user=tep@iap.fr
@@ -15,7 +14,7 @@ module load cuda/11.7
 module load hdf5/1.10.7-intel
 module load inteloneapi/2021.2
 
-NBTHREADSGPU=1024
+NBTHREADSGPU=128
 
 
 # King IC
@@ -52,7 +51,7 @@ FOLDER_OUTPUT=/data71/tep/data_streams/king/
 
 cd ../code/src_gpu/king
 
-julia -t 40 ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
+julia -t auto ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --d_cluster ${DIST} --c ${C} --Rs_host ${RS} --Mvir_halo ${MHALO} \
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \

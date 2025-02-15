@@ -38,7 +38,6 @@ function initialize_stars!(tab_stars::Array{Float64})
 
 end
 
-# ADAPT FOR GPU
 # Compute IOM separately
 # https://developer.nvidia.com/gpugems/gpugems3/part-v-physics-simulation/chapter-31-fast-n-body-simulation-cuda
 function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceArray{T}, tab_pos_z::CuDeviceArray{T}, 
@@ -52,9 +51,15 @@ function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceAr
     # Tile decomposition avoids loading huge chuncks of data (of order Npart^2)
 
     gtid = threadIdx().x  + (blockIdx().x - 1) * blockDim().x
-    x = tab_pos_x[gtid]
-    y = tab_pos_y[gtid]
-    z = tab_pos_z[gtid]
+
+    # Do not go out-of-bounds for the particles for which we compute the acceleration
+    if (gtid <= Npart)
+
+        x = tab_pos_x[gtid]
+        y = tab_pos_y[gtid]
+        z = tab_pos_z[gtid]
+
+    end
 
     ax = 0.0
     ay = 0.0
@@ -73,10 +78,17 @@ function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceAr
         idx = threadIdx().x  + (tile - 1) * blockDim().x
 
         # Filling shared memory of tile
+        # Be careful not to go out-of-bounds for the last tile (i.e. when looking at particles accelerating this thread's particle)
+        
+        if (idx <= Npart)
 
-        shPositionX[threadIdx().x] = tab_pos_x[idx]
-        shPositionY[threadIdx().x] = tab_pos_y[idx]
-        shPositionZ[threadIdx().x] = tab_pos_z[idx]
+            shPositionX[threadIdx().x] = tab_pos_x[idx]
+            shPositionY[threadIdx().x] = tab_pos_y[idx]
+            shPositionZ[threadIdx().x] = tab_pos_z[idx]
+
+        end
+
+        length_tile = min(blockDim().x, Npart - i + 1)
 
         sync_threads()
 
@@ -84,20 +96,26 @@ function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceAr
         # Each thread is performed in parallel
         # Use shared memory for faster access
 
-        for j=1:blockDim().x
+        # Do not go out-of-bounds for the particles for which we compute the acceleration
+        if (gtid <= Npart)
 
-            dx = x - shPositionX[j]
-            dy = y - shPositionY[j]
-            dz = z - shPositionZ[j]
+            # Be careful not to go out-of-bounds for the last tile (i.e. when looking at particles accelerating this thread's particle)
+            for j=1:length_tile#blockDim().x
 
-            dr = sqrt(dx*dx + dy*dy + dz*dz + eps*eps)
+                dx = x - shPositionX[j]
+                dy = y - shPositionY[j]
+                dz = z - shPositionZ[j]
 
-            ar = _G*mass/dr^3 
-            
-            ax += ar * dx
-            ay += ar * dy
-            az += ar * dz
+                dr = sqrt(dx*dx + dy*dy + dz*dz + eps*eps)
 
+                ar = _G*mass/dr^3 
+                
+                ax += ar * dx
+                ay += ar * dy
+                az += ar * dz
+
+
+            end
 
         end
         
@@ -109,9 +127,12 @@ function compute_acc_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceAr
     end
 
     # Save acceleration into global array for the star in the current thread
-    tab_acc_x[gtid] = ax
-    tab_acc_y[gtid] = ay
-    tab_acc_z[gtid] = az
+    # Do not go out-of-bounds for the particles for which we compute the acceleration
+    if (gtid <= Npart)
+        tab_acc_x[gtid] = ax
+        tab_acc_y[gtid] = ay
+        tab_acc_z[gtid] = az
+    end
 
     return nothing
 
@@ -124,12 +145,7 @@ function tab_acc_int_gpu!(tab_acc::Array{Float64}, tab_pos::Array{Float64})
     tab_pos_y = tab_pos[:,2]
     tab_pos_z = tab_pos[:,3]
 
-    # # Number of pairs (i,j) with repetitions (i.e. we count {ij} and {ji} as two distinct pairs, and append a 0.5 in front of the sum)
-    # # For convenient we include {i,i} twice, since a_{ii} = 0 for a softened potential anyway
-    # nbPairs = Npart*Npart
-
-    # numblocks = min(40, ceil(Int64, nbPairs/nbThreadsPerBlocks))
-    numblocks = min(40, ceil(Int64, Npart/nbThreadsPerBlocks))
+    numblocks = ceil(Int64, Npart/nbThreadsPerBlocks)
 
     dev_tab_pos_x = CuArray(tab_pos_x)
     dev_tab_pos_y = CuArray(tab_pos_y)
@@ -140,11 +156,8 @@ function tab_acc_int_gpu!(tab_acc::Array{Float64}, tab_pos::Array{Float64})
     dev_tab_acc_z = CuArray(zeros(Float64, Npart))
 
 
-    # dev_tab_potential_energy_block = CuArray(zeros(Float64, numblocks))
-
     @cuda threads=nbThreadsPerBlocks blocks=numblocks shmem=3*nbThreadsPerBlocks*sizeof(Float64) compute_acc_int_gpu!(dev_tab_pos_x, dev_tab_pos_y, dev_tab_pos_z,
                                                                                                                 dev_tab_acc_x, dev_tab_acc_y, dev_tab_acc_z)
-
 
     tab_acc_x = Array(dev_tab_acc_x)
     tab_acc_y = Array(dev_tab_acc_y)

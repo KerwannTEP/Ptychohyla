@@ -1,3 +1,7 @@
+#using Pkg; Pkg.activate("../../../packages/julia_1-9-3/JuEnvGPU")
+
+println("Nb threads = ", Threads.nthreads())
+
 include("Args.jl")
 include("Constants.jl")
 include("../Host.jl")
@@ -5,10 +9,12 @@ include("Cluster.jl")
 include("../Snapshots.jl")
 include("../Integrator.jl")
 
+println("Run ID :", srun)
+
 
 function main()
 
-    time_start = now()
+    timing_start = now()
 
     tab_stars = zeros(Float64, Npart,6) # (x, y, z, vx, vy, vz)
     tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L
@@ -51,15 +57,15 @@ function main()
     # compute_bary!(tab_stars, tab_bary)
     write_data!(time, tab_stars, tab_IOM, tab_bary)
 
-    time_end = now()
+    timing_end = now()
 
     # https://stackoverflow.com/questions/41293747/round-julias-millisecond-type-to-nearest-second-or-minute
-    dt = time_end - time_start
+    dtim = timing_end - timing_start
 
     println("-----------------------")
 
     # https://discourse.julialang.org/t/how-to-convert-period-in-milisecond-to-minutes-seconds-hour-etc/2423/6
-    dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dt)))
+    dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dtim)))
     println("Simulation took : ", dt_v)
 
 end

@@ -6,7 +6,7 @@ function update_tab_acc!(tab_stars::Array{Float64}, tab_acc::Array{Float64})
     # Add the contribution from the host 
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
+        x, y, z, vx, vy, vz = tab_stars[i, :]
         ax_host, ay_host, az_host = acc_host(x, y, z) 
 
         tab_acc[i, 1] += ax_host
@@ -27,7 +27,7 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
 
     tab_stars_temp = tab_stars
-    update_tab_acc!(tab_stars, tab_acc)
+    update_tab_acc!(tab_stars_temp, tab_acc)
 
     # v_{k} -> v_{k+1/2} = v_{k} + a_{k}*dt/2
     # a_{k} = F(x_{k})
@@ -67,7 +67,7 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
     end
 
     tab_stars_temp = tab_stars
-    update_tab_acc!(tab_stars, tab_acc)
+    update_tab_acc!(tab_stars_temp, tab_acc)
 
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})
