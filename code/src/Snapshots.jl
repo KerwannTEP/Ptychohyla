@@ -1,11 +1,11 @@
 using DelimitedFiles
 
 
-function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Float64}, tab_bary::Array{Float64})
+function write_data!(time::Float64, tab_stars::Array{Float64}, tab_Uint::Array{Float64}, tab_IOM::Array{Float64}, tab_bary::Array{Float64})
     
     n_digits = floor(Int64,-log10(dt))+1
     namefile = path_dir*"data/snapshots_"*srun*"/time_"*string(round(time, digits=n_digits))*".txt"
-    writedlm(namefile, tab_stars)
+    writedlm(namefile, [tab_stars tab_Uint])
 
     # https://discourse.julialang.org/t/adding-to-existing-txt-file-created-by-writedlm/6907/2
     namefile_iom = path_dir*"data/iom_snapshots_"*srun*".txt"
@@ -163,6 +163,8 @@ function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64}, tab_Ui
                 end
         
             end
+
+            tab_Uint[i] = Ui
 
             # Unbound particles 
 

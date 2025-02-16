@@ -1,159 +1,167 @@
 using DelimitedFiles
 
 
-function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Float64}, tab_bary::Array{Float64})
+function write_data!(time::Float64, tab_stars::Array{Float64}, tab_Uint::Array{Float64})
     
     n_digits = floor(Int64,-log10(dt))+1
     namefile = folder_output*"snapshots_"*srun*"/time_"*string(round(time, digits=n_digits))*".txt"
-    writedlm(namefile, tab_stars)
-
-    # # https://discourse.julialang.org/t/adding-to-existing-txt-file-created-by-writedlm/6907/2
-    # namefile_iom = path_dir*"data/iom_snapshots_"*srun*".txt"
-    # io = open(namefile_iom, "a")
-    # writedlm(io, transpose([round(time, digits=n_digits); tab_IOM]))
-    # close(io)
-
-    # namefile_bary = path_dir*"data/bary_snapshots_"*srun*".txt"
-    # io2 = open(namefile_bary, "a")
-    # writedlm(io2, transpose([round(time, digits=n_digits); tab_bary]))
-    # close(io2)
+    writedlm(namefile, [tab_stars tab_Uint])
 
     return nothing
 
 end
 
-# TODO: Density center to compute ?
-function compute_bary!(tab_stars::Array{Float64}, tab_bary::Array{Float64})
 
-    xb_t = zeros(Float64, Threads.nthreads())
-    yb_t = zeros(Float64, Threads.nthreads())
-    zb_t = zeros(Float64, Threads.nthreads())
+function post_treatment!()
 
-    Threads.@threads for i=1:Npart
+    # Read data
 
-        tid = Threads.threadid()
+    listFiles = readdir(folder_output*"snapshots_"*srun*"/"; join=true)
+    nsnap = length(listFiles)
+    tabt = zeros(Float64, nsnap)
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+    for i=1:nsnap 
+        interm = split(split(listFiles[i],"_")[end],".")
+        interm = interm[1]*"."*interm[2]
+        time = parse(Float64, interm)
 
-        xb_t[tid] += x
-        yb_t[tid] += y
-        zb_t[tid] += z
+        tabt[i] = time 
+    end
+
+    p = sortperm(tabt)
+
+    sortedFiles = Array{String}(undef, nsnap)
+    tabtsort = zeros(Float64, nsnap)
+
+    for i=1:nsnap 
+
+        tabtsort[i] = tabt[p[i]]
+        sortedFiles[i] = listFiles[p[i]]
 
     end
 
-    tab_bary[1] = 0.0
-    tab_bary[2] = 0.0
-    tab_bary[3] = 0.0
+    # Compute useful quantities
 
-    for tid=1:Threads.nthreads()
+    tab_IOM = zeros(Float64, nsnap, 8) # time, K, U, E_tot, Lx, Ly, Lz, nb_unbound
 
-        tab_bary[1] += xb_t[tid]/Npart 
-        tab_bary[2] += yb_t[tid]/Npart 
-        tab_bary[3] += zb_t[tid]/Npart 
+    for isnap=1:nsnap
 
-    end
+        namefile = sortedFiles[isnap]
+        time = tabtsort[isnap]
 
+        data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint
+
+        tab_vb_t = zeros(Float64, Threads.nthreads(), 3)
+        K_t =  zeros(Float64, Threads.nthreads())
+        Uc_t =  zeros(Float64, Threads.nthreads())
+        Uh_t =  zeros(Float64, Threads.nthreads())
+        L_t =  zeros(Float64, Threads.nthreads(), 3)
+
+        Threads.@threads for i=1:Npart 
+
+            tid = Threads.threadid()
+            x, y, z, vx, vy, vz, Uint = data_stars[i, :]
+            r = sqrt(x^2 + y^2 + z^2)
+            R = sqrt(x^2 + y^2)
+            psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
+
+            v2 = vx^2 + vy^2 + vz^2
+
+            # Barycenter 
+            tab_vb_t[tid, 1] += vx
+            tab_vb_t[tid, 2] += vy
+            tab_vb_t[tid, 3] += vz
+
+            # Kinetic energy 
+            K_t[tid] += 0.5 * mass * v2 
+
+            # Host potential energy
+            Uh_t[tid] += mass * psi_xyz
+
+            # Cluster potential energy 
+            Uc_t[tid] += 0.5*Uint
+
+                
+            # Angular momenta 
+            Lx = y*vz - z*vy 
+            Ly = z*vx - x*vz 
+            Lz = x*vy - y*vx 
+
+            L_t[tid, 1] += mass * Lx
+            L_t[tid, 2] += mass * Ly
+            L_t[tid, 3] += mass * Lz
+
+        end
+       
+        Vbx = 0.0
+        Vby = 0.0
+        Vbz = 0.0
+
+        K = 0.0
+        U = 0.0
+        L = zeros(Float64, 3)
+
+
+        for tid=1:Threads.nthreads()
+            Vbx += tab_vb_t[tid, 1]/Npart
+            Vby += tab_vb_t[tid, 2]/Npart
+            Vbz += tab_vb_t[tid, 3]/Npart
+
+            K += K_t[tid]
+            U += Uh_t[tid] + Uc_t[tid]
+            L[1] += L_t[tid, 1]
+            L[2] += L_t[tid, 2]
+            L[3] += L_t[tid, 3]
     
+        end
 
-end
+        Etot = K + U
 
-# Compute along force calculation for efficiency
-# GPU acceleration for Uint 
-# Use IOM julia script from NbodyPostTreatment folder
-function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
+        # Compute number of unbound stars
+        n_unbound_t = zeros(Float64, Threads.nthreads())
 
-    # tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L
+        Threads.@threads for i=1:Npart
 
-    K_t = zeros(Float64, Threads.nthreads()) # Kinetic energy
-    Uh_t = zeros(Float64, Threads.nthreads()) # Potential energy from host
-    Uc_t = zeros(Float64, Threads.nthreads()) # Potential energy from cluster (self-interaction)
-    L_t = zeros(Float64, Threads.nthreads(), 3) # Components of the angular momentum
-
-    Threads.@threads for i=1:Npart
-
-        tid = Threads.threadid()
-
-        x, y, z, vx, vy, vz = tab_stars[i, :]
-        r = sqrt(x^2 + y^2 + z^2)
-        R = sqrt(x^2 + y^2)
-        v2 = vx^2 + vy^2 + vz^2
-        psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
-
-        # Kinetic energy 
-        K_t[tid] += 0.5 * mass * v2 
-
-        # Host potential energy
-        Uh_t[tid] += mass * psi_xyz
-
-        # Angular momenta 
-        Lx = y*vz - z*vy 
-        Ly = z*vx - x*vz 
-        Lz = x*vy - y*vx 
-
-        L_t[tid, 1] += mass * Lx
-        L_t[tid, 2] += mass * Ly
-        L_t[tid, 3] += mass * Lz
-
-    end
-
-    Threads.@threads for i=1:Npart
-
-        tid = Threads.threadid()
-
-        Ui = 0.0 # 1/2 sum_{j != i} G mi mj/rij
-
-        # Cluster interaction potential energy 
-
-        xi = tab_stars[i,1]
-        yi = tab_stars[i,2]
-        zi = tab_stars[i,3]
-
-        for j=1:Npart
-            if (j != i)
+            tid = Threads.threadid()
     
-                xj = tab_stars[j,1]
-                yj = tab_stars[j,2]
-                zj = tab_stars[j,3]
+            # Unbound particles 
+            x, y, z, vx, vy, vz, Uint = data_stars[i, :]
+            vc_x = vx - Vbx
+            vc_y = vy - Vby
+            vc_z = vz - Vbz
     
-                # Vector ri - rj
-                xij = xi - xj 
-                yij = yi - yj 
-                zij = zi - zj 
+            Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
     
-                rij = sqrt(xij^2 + yij^2 + zij^2 + eps^2)
-    
-                Ui -= _G*mass*mass/rij
-
+            if (Ec >= 0.0)
+                n_unbound_t[tid] += 1.0
             end
     
         end
 
-        Uc_t[tid] += 0.5 * Ui
+        n_unbound = 0.0
+
+        for tid=1:Threads.nthreads()
+            n_unbound += n_unbound_t[tid]
+        end
+    
+        tab_IOM[isnap,1] = time
+        tab_IOM[isnap,2] = K 
+        tab_IOM[isnap,3] = U
+        tab_IOM[isnap,4] = Etot
+        tab_IOM[isnap,5] = L[1]
+        tab_IOM[isnap,6] = L[2]
+        tab_IOM[isnap,7] = L[3]
+        tab_IOM[isnap,8] = n_unbound
+
+        
 
     end
 
-    K = 0.0
-    Uh = 0.0
-    Uc = 0.0
-    L = zeros(Float64, 3)
-
-    for tid=1:Threads.nthreads()
-
-        K += K_t[tid]
-        Uh += Uh_t[tid]
-        Uc += Uc_t[tid]
-        L[1] += L_t[tid, 1]
-        L[2] += L_t[tid, 2]
-        L[3] += L_t[tid, 3]
-
-    end
-
-    tab_IOM[1] = K 
-    tab_IOM[2] = Uh + Uc 
-    tab_IOM[3] = K + Uh + Uc 
-    tab_IOM[4] = L[1]
-    tab_IOM[5] = L[2]
-    tab_IOM[6] = L[3]
-    tab_IOM[7] = sqrt(L[1]^2 + L[2]^2 + L[3]^2)
+    # Save quantities
+    namefile = folder_output*"/iom_snapshots_"*srun*".txt"
+    writedlm(namefile, tab_IOM)
 
 end
+
+
+
