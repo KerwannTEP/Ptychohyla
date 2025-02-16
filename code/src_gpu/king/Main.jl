@@ -9,46 +9,29 @@ include("Cluster.jl")
 include("../Snapshots.jl")
 include("../Integrator.jl")
 
-println("Run ID :", srun)
+println("Run ID : ", srun)
 
 
 function main()
 
-    timing_start = now()
-
-    tab_stars = zeros(Float64, Npart,6) # (x, y, z, vx, vy, vz)
-    tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L
-    time = 0.0
-    initialize_stars!(tab_stars)
-
-    # Compute barycenter
-
-    tab_bary = zeros(Float64, 3)
-
-    index = 0
-
     mkpath(folder_output*"snapshots_"*srun*"/")
 
-    tab_acc = zeros(Float64, Npart, 3)  
+    timing_start = now()
 
+    tab_stars = zeros(Float64, Npart, 6) # (x, y, z, vx, vy, vz)
+    tab_acc = zeros(Float64, Npart, 3)  
+    tab_Uint = zeros(Float64, Npart) # (Ui, Ei_wrt_cluster)
+    
+    index = 0
+    time = 0.0
     first_timestep = true
 
+    initialize_stars!(tab_stars)
 
     while (time < time_end)
         
 
-        # compute_IOM!(tab_stars, tab_IOM)
-        # compute_bary!(tab_stars, tab_bary)
-
-
-        # Snapshots 
-        if (index % N_dt == 0)
-            write_data!(time, tab_stars, tab_IOM, tab_bary)
-            # println("Progress = ", round(time/time_end, digits=4), " | Energy = ", tab_IOM[3])
-      
-        end
-
-        integrate_stars_leapfrog!(tab_stars, tab_acc, first_timestep)
+        integrate_stars_leapfrog!(index, time, tab_stars, tab_acc, tab_Uint, first_timestep)
         time += dt
         index += 1
 
@@ -59,9 +42,7 @@ function main()
     end
 
     # Last snapshot
-    # compute_IOM!(tab_stars, tab_IOM)
-    # compute_bary!(tab_stars, tab_bary)
-    write_data!(time, tab_stars, tab_IOM, tab_bary)
+    write_data!(time, tab_stars, tab_Uint)  
 
     timing_end = now()
 
@@ -73,6 +54,11 @@ function main()
     # https://discourse.julialang.org/t/how-to-convert-period-in-milisecond-to-minutes-seconds-hour-etc/2423/6
     dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dtim)))
     println("Simulation took : ", dt_v)
+
+    # println("-----------------------")
+    # println("Post-treatment (energy, etc) ...")
+
+    # WRITE IOM IN POST-PROCESSING
 
 end
 

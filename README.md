@@ -78,7 +78,7 @@ julia> using Pkg; Pkg.activate()
 
 ## Integration
 
-One may perform a run for a King sphere by going to the `job` folder and launching the bash script
+One may perform a CPU run for a King sphere by going to the `job` folder and launching the bash script
 
 ```
 $ bash job_stream_king_run.sh
@@ -86,3 +86,11 @@ $ bash job_stream_king_run.sh
 
 One may modify the run's parameters within the bash script file.
 Snapshots are saved in the `data/snapshot` folder.
+
+## Running the GPU version
+
+A GPU-accelerated version of `Ptychohyla`, using the `CUDA` library, can be found in the folder `code/src_gpu`. Should one have access to a computing cluster using SLURM, one may adapt the script given in the folder `job_slurm` to perform a run
+
+```
+$ sbatch job_stream_king.sh
+```
