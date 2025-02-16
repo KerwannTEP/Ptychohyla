@@ -3,7 +3,7 @@
 # King IC
 N=10000
 MCLUSTER=100000 # Total mass in solar masses
-RH=0.01 # Virial radius in kpc
+RH=0.01 # Half-mass radius in kpc
 DIST=4.0 # Distance of the cluster to the host potential's centre (in kpc)
 
 # Dark halo

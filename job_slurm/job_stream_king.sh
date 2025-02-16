@@ -20,7 +20,7 @@ NBTHREADSGPU=128
 # King IC
 N=10000
 MCLUSTER=100000 # Total mass in solar masses
-RH=0.01 # Virial radius in kpc
+RH=0.01 # Half-mass radius in kpc
 DIST=4.0 # Distance of the cluster to the host potential's centre (in kpc)
 
 # Dark halo
@@ -40,14 +40,14 @@ BDISK=0.280
 
 # Run parameters
 TEND=100.0 # Final time, in Henon units
-DT=0.01 #0.01 # Timestep, in Henon units
-NDT=100 #10 # Frequency of snapshot save
+DT=0.01 # Timestep, in Henon units
+NDT=100 # Frequency of snapshot save
 EPS=0.01 # Softening length of the gravitational interaction, in Henon units
 
 # Perform the run
 
 RUN=Main.jl
-FOLDER_OUTPUT=/data71/tep/data_streams/king/
+FOLDER_OUTPUT=/path/to/data/output/
 
 cd ../code/src_gpu/king
 
