@@ -1,4 +1,4 @@
-function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64})
+function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64})
 
     # Compute contribution from the cluster self-gravity (GPU acceleration)
     tab_acc_Uint_int_gpu!(tab_acc, tab_Uint, tab_stars[:, 1:3])
@@ -13,11 +13,18 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
         tab_acc[i, 2] += ay_host
         tab_acc[i, 3] += az_host
 
+        r = sqrt(x^2 + y^2 + z^2)
+        R = sqrt(x^2 + y^2)
+        psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
+
+        tab_Uc[i] = mass * psi_xyz
+
+
     end
 
 end
 
-function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, first_timestep::Bool)
+function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool)
 
     # Integrate each star
     # N-body force (GPU) + Host potential
@@ -26,7 +33,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
 
     if (first_timestep)
-        update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint)
+        update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     end
 
 
@@ -34,7 +41,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # If first timestep, then Uint are computed just above.
     # If not, then position, velocities and Uint were updated in the previous timestep
     if (index % N_dt == 0)
-        write_data!(time, tab_stars, tab_Uint)  
+        write_data!(time, tab_stars, tab_Uint, tab_Uc)  
     end
 
 
@@ -74,7 +81,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     end
 
 
-    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint)
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
 
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})

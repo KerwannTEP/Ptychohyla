@@ -20,8 +20,9 @@ function main()
 
     tab_stars = zeros(Float64, Npart, 6) # (x, y, z, vx, vy, vz)
     tab_acc = zeros(Float64, Npart, 3)  
-    tab_Uint = zeros(Float64, Npart) # (Ui, Ei_wrt_cluster)
-    
+    tab_Uint = zeros(Float64, Npart)
+    tab_Uc = zeros(Float64, Npart)
+
     index = 0
     time = 0.0
     first_timestep = true
@@ -31,7 +32,7 @@ function main()
     while (time < time_end)
         
 
-        integrate_stars_leapfrog!(index, time, tab_stars, tab_acc, tab_Uint, first_timestep)
+        integrate_stars_leapfrog!(index, time, tab_stars, tab_acc, tab_Uint, tab_Uc, first_timestep)
         time += dt
         index += 1
 
@@ -42,7 +43,7 @@ function main()
     end
 
     # Last snapshot
-    write_data!(time, tab_stars, tab_Uint)  
+    write_data!(time, tab_stars, tab_Uint, tab_Uc)  
 
     timing_end = now()
 
@@ -55,11 +56,11 @@ function main()
     dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dtim)))
     println("Simulation took : ", dt_v)
 
-    println("-----------------------")
-    println("Post-treatment (energy, etc) ...")
+    # println("-----------------------")
+    # println("Post-treatment (energy, etc) ...")
 
-    # WRITE IOM IN POST-PROCESSING
-    @time post_treatment!()
+    # # WRITE IOM IN POST-PROCESSING
+    # @time post_treatment!()
 
 end
 
