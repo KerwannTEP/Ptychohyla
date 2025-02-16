@@ -173,7 +173,7 @@ function tab_acc_Uint_int_gpu!(tab_acc::Array{Float64}, tab_Uint::Array{Float64}
     dev_tab_Uint = CuArray(zeros(Float64, Npart))
 
 
-    @cuda threads=nbThreadsPerBlocks blocks=numblocks shmem=3*nbThreadsPerBlocks*sizeof(Float64) compute_acc_Uint_int_gpu2!(dev_tab_pos_x, dev_tab_pos_y, dev_tab_pos_z,
+    @cuda threads=nbThreadsPerBlocks blocks=numblocks shmem=3*nbThreadsPerBlocks*sizeof(Float64) compute_acc_Uint_int_gpu!(dev_tab_pos_x, dev_tab_pos_y, dev_tab_pos_z,
                                                                                                                 dev_tab_acc_x, dev_tab_acc_y, dev_tab_acc_z, dev_tab_Uint)
 
     tab_acc_x = Array(dev_tab_acc_x)

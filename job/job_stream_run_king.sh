@@ -22,9 +22,9 @@ ADISK=3.0
 BDISK=0.280
 
 # Run parameters
-TEND=0.1 # Final time, in Henon units
-DT=0.01 #0.01 # Timestep, in Henon units
-NDT=10 #10 # Frequency of snapshot save
+TEND=100.0 # Final time, in Henon units
+DT=0.01 # Timestep, in Henon units
+NDT=100 # Frequency of snapshot save
 EPS=0.01 # Softening length of the gravitational interaction, in Henon units
 
 # Perform the run

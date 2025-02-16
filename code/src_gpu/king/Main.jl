@@ -55,10 +55,11 @@ function main()
     dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dtim)))
     println("Simulation took : ", dt_v)
 
-    # println("-----------------------")
-    # println("Post-treatment (energy, etc) ...")
+    println("-----------------------")
+    println("Post-treatment (energy, etc) ...")
 
     # WRITE IOM IN POST-PROCESSING
+    @time post_treatment!()
 
 end
 

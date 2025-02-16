@@ -34,7 +34,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # If first timestep, then Uint are computed just above.
     # If not, then position, velocities and Uint were updated in the previous timestep
     if (index % N_dt == 0)
-        write_data!(time, tab_stars, tab_Uint, tab_IOM)  
+        write_data!(time, tab_stars, tab_Uint)  
     end
 
 
