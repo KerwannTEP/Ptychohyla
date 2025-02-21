@@ -21,11 +21,11 @@ tabargs = ArgParseSettings()
     "--framerate"
     help = "Number of frames per second"
     arg_type = Int64
-    default = 30
+    default = 20
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875213898039
+    default = 63875411207673
 
 end
 parsed_args = parse_args(tabargs)
@@ -67,7 +67,7 @@ function plot_data()
     p = sortperm(tab_time)
 
     # (x,y)
-    anim = @animate for i=1:5:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -124,7 +124,7 @@ function plot_data()
     gif(anim, namefile_gif, fps = framepersec)
 
     # (x,z)
-    anim = @animate for i=1:5:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]

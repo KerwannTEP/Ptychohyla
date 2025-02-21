@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875410815852
+    default = 63875411207673
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -356,4 +356,4 @@ function plot_data!()
 end 
 
 
-# plot_data!()
+plot_data!()

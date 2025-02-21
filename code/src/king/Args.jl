@@ -18,11 +18,11 @@ tabargs = ArgParseSettings()
     "--Rh_cluster"
     help = "Half-mass radius of the King cluster (in kpc)"
     arg_type = Float64
-    default = 5.00e-2
+    default = 1.00e-2
     "--d_cluster"
     help = "Distance of the cluster to the host potential's centre (in kpc)"
     arg_type = Float64
-    default = 2.0e+0
+    default = 4.0e+0
 
 
 
