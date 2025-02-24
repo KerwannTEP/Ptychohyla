@@ -41,7 +41,12 @@ const path_dir = path_to_src * "/../../../"
 # Current time for file saving 
 const date = now()
 const sdate = Dates.format(date, "yyyy-mm-dd_HH-MM-SS")
-const run = Dates.value(date)
+
+# Ternary operator 
+# https://stackoverflow.com/questions/39790031/does-julia-have-a-ternary-conditional-operator
+# https://en.wikibooks.org/wiki/Introducing_Julia/Controlling_the_flow#Ternary_expressions
+const run = (id_default >= 0) ? id_default : Dates.value(date)
+
 const srun = string(run)
 
 # Henon units

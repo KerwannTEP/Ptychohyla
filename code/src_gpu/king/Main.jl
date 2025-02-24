@@ -27,7 +27,11 @@ function main()
     time = 0.0
     first_timestep = true
 
-    initialize_stars!(tab_stars)
+    if !(RESTART) # If not a restart
+        initialize_stars!(tab_stars)
+    else # If restart
+        time = initialize_stars_restart!(tab_stars)
+    end
 
     while (time < time_end)
         
@@ -42,9 +46,6 @@ function main()
 
     end
 
-    # Last snapshot
-    write_data!(time, tab_stars, tab_Uint, tab_Uc)  
-
     timing_end = now()
 
     # https://stackoverflow.com/questions/41293747/round-julias-millisecond-type-to-nearest-second-or-minute
@@ -55,12 +56,6 @@ function main()
     # https://discourse.julialang.org/t/how-to-convert-period-in-milisecond-to-minutes-seconds-hour-etc/2423/6
     dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dtim)))
     println("Simulation took : ", dt_v)
-
-    # println("-----------------------")
-    # println("Post-treatment (energy, etc) ...")
-
-    # # WRITE IOM IN POST-PROCESSING
-    # @time post_treatment!()
 
 end
 
