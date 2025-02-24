@@ -327,6 +327,38 @@ function plot_data!()
     display(p)
     readline()
 
+    p = plot(tabr, [tabpsi],
+        xlabel=L"r"*" [HU]", ylabel=L"\psi(r)",
+        # ylims=(minpsi, maxpsi),
+        # xticks=-20:1:20,
+        label=:false,
+        color=:black,
+        xaxis=:log10,
+        size=((600, 300)),
+        frame=:box)
+
+    eps_soft = 0.01
+    plot!(p, [eps_soft, eps_soft], [tabpsi[1], tabpsi[end]], linestyle=:dash, color=:blue, label="Softening length")
+
+
+    display(p)
+    readline()
+
+    p = plot(tabr, [tabM],
+        xlabel=L"r"*" [HU]", ylabel=L"M(r)",
+        # ylims=(minpsi, maxpsi),
+        # xticks=-20:1:20,
+        label=:false,
+        color=:black,
+        xaxis=:log10,
+        size=((600, 300)),
+        frame=:box)
+
+    plot!(p, [eps_soft, eps_soft], [0, 1], linestyle=:dash, color=:blue, label="Softening length")
+
+
+    display(p)
+    readline()
 
 end
 

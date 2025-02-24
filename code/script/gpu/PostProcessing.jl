@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875411207673
+    default = 63875434463958#63875411207673
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -339,11 +339,14 @@ function plot_data!()
 
     # Unbound particles
 
-    plt = plot(datat, [dataUnbound ./ Npart .* 100], 
+    plt = plot(datat[1:350], [dataUnbound[1:350] ./ Npart .* 100], 
         labels=:false, 
         xlabel="Time [Myr]", 
         ylabel="Fraction of unbound stars [%]", 
-        xlims=(0, datat[n-1]),
+        xlims=(0, datat[350]),
+        # aspect_ratio=1,
+        xticks=0:100:2500,
+        yticks=0:2:100,
         frame=:box)
 
     display(plt)

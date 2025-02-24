@@ -135,6 +135,7 @@ function compute_tab_delta_phi()
     println("(Xc,Yc) = ",(Xc, Yc))
 
     phi_avg = atan(Yc, Xc)
+    println("phi_avg = ",phi_avg*180/pi)
 
     tab_delta_phi = zeros(Float64, Npart)
 
@@ -143,13 +144,20 @@ function compute_tab_delta_phi()
         y = tab_pos[2,i]
 
         phi = atan(y, x)
-        tab_delta_phi[i] = ((phi - phi_avg) * 180.0/pi)
+        delta_phi = ((phi - phi_avg) * 180.0/pi)
 
-        if (180 <= tab_delta_phi[i] <= 360.0)
-            tab_delta_phi[i] = -(360.0 - tab_delta_phi[i])
+        # Angle in [0, 360º] interval 
+        delta_phi = mod(delta_phi, 360.0)
+
+        # Angle in [-180.º, 180º] interval
+        if (180 <= delta_phi <= 360.0)
+            delta_phi = delta_phi - 360.0
         end
-        # tab_delta_phi[i] = (phi ) * 180.0/pi
+
+        tab_delta_phi[i] =  delta_phi
     end
+
+    display(sort(tab_delta_phi))
 
     return tab_delta_phi, time
 
