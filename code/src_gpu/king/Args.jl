@@ -94,6 +94,15 @@ tabargs = ArgParseSettings()
     help = "Output folder of the data"
     arg_type = String
     default = folder_dir  * "/../../../data/"
+
+    "--restart"
+    help = "Is the run a restart (true or false) ?"
+    arg_type = Bool
+    default = false
+    "--id"
+    help = "Impose a run's id"
+    arg_type = Int64
+    default = -1
 end
 parsed_args = parse_args(tabargs)
 
@@ -125,3 +134,6 @@ const eps = parsed_args["eps"]
 const nbThreadsPerBlocks = parsed_args["nbThreadsPerBlocks"]
 
 const folder_output = parsed_args["folder_output"]
+
+const RESTART = parsed_args["restart"]
+const id_default = parsed_args["id"]

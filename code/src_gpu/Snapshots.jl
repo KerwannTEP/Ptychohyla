@@ -11,13 +11,6 @@ function write_data!(time::Float64, tab_stars::Array{Float64}, tab_Uint::Array{F
 
 end
 
-function save_final_state_for_restart()
-
-    # TODO
-
-end
-
-
 function post_treatment!()
 
     # Read data

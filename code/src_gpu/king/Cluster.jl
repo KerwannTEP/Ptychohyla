@@ -42,10 +42,44 @@ function initialize_stars!(tab_stars::Array{Float64})
 
 end
 
+function initialize_stars_restart!(tab_stars::Array{Float64})
 
-function restart_run!(tab_stars::Array{Float64})
+    # Load last saved snapshot 
+    # Fill data
+    # Return restart time
 
-    # TODO
+    listFiles = readdir(folder_output*"snapshots_"*srun*"/"; join=true)
+    nsnap = length(listFiles)
+    tabt = zeros(Float64, nsnap)
+
+    for i=1:nsnap 
+        interm = split(split(listFiles[i],"_")[end],".")
+        interm = interm[1]*"."*interm[2]
+        time = parse(Float64, interm)
+
+        tabt[i] = time 
+    end
+
+    p = sortperm(tabt)
+
+    namefile = listFiles[p[nsnap]]
+    time = tabt[p[nsnap]]
+
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    # Array of size (Npart, 8), in Henon units
+
+    Threads.@threads for i=1:Npart 
+
+        tab_stars[i, 1] = data_stars[i, 1]
+        tab_stars[i, 2] = data_stars[i, 2]
+        tab_stars[i, 3] = data_stars[i, 3]
+        tab_stars[i, 4] = data_stars[i, 4]
+        tab_stars[i, 5] = data_stars[i, 5]
+        tab_stars[i, 6] = data_stars[i, 6]
+
+    end
+
+    return time
 
 end
 
