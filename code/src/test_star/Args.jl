@@ -2,23 +2,25 @@ using ArgParse
 
 # https://github.com/carlrodriguez/CHC/blob/mw2014/src/potential/host_potential/static_analytic_potential/host_potential.h
 
+const folder_dir = @__DIR__ 
+
 ##################################################
 # Parsing of the command-line arguments
 ##################################################
 tabargs = ArgParseSettings()
 @add_arg_table! tabargs begin
     "--M_cluster"
-    help = "Mass of the Plummer cluster (in solar masses)"
+    help = "Mass of the cluster (in solar masses)"
     arg_type = Float64
     default = 1.0e+5
     "--Rv_cluster"
-    help = "Virial radius of the Plummer cluster (in kpc)"
+    help = "Virial radius of the cluster (in kpc)"
     arg_type = Float64
     default = 2.00e-2
     "--d_cluster"
     help = "Distance of the cluster to the host potential's centre (in kpc)"
     arg_type = Float64
-    default = 8.50e+0
+    default = 4.0e+0
 
 
 
@@ -78,6 +80,12 @@ tabargs = ArgParseSettings()
     help = "Softening length"
     arg_type = Float64
     default = 0.001
+
+    "--folder_output"
+    help = "Output folder of the data"
+    arg_type = String
+    default = folder_dir  * "/../../../data/"
+
 end
 parsed_args = parse_args(tabargs)
 
@@ -104,3 +112,5 @@ const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
+
+const folder_output = parsed_args["folder_output"]

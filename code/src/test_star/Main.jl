@@ -4,8 +4,13 @@ include("../Host.jl")
 include("Snapshots.jl")
 include("Integrator_one_particle.jl")
 
+println("Run ID : ", srun)
 
 function main()
+
+    mkpath(folder_output*"snapshots_"*srun*"/")
+
+    timing_start = now()
 
     tab_stars = zeros(Float64, 6) # (x, y, z, vx, vy, vz)
     tab_IOM = zeros(Float64, 7) # K, U, Etot, Lx, Ly, Lz, L
@@ -16,10 +21,7 @@ function main()
     tab_stars[1] = d_host
     tab_stars[5] = circular_velocity(d_host)
 
-
     index = 0
-
-    # mkpath(path_dir*"data/snapshots_"*srun*"/")
 
     while (time < time_end)
         
@@ -38,9 +40,16 @@ function main()
 
     end
 
-    # Last snapshot
-    compute_IOM!(tab_stars, tab_IOM)
-    write_data!(time, tab_stars, tab_IOM)
+    timing_end = now()
+
+    # https://stackoverflow.com/questions/41293747/round-julias-millisecond-type-to-nearest-second-or-minute
+    dtim = timing_end - timing_start
+
+    println("-----------------------")
+
+    # https://discourse.julialang.org/t/how-to-convert-period-in-milisecond-to-minutes-seconds-hour-etc/2423/6
+    dt_v = Dates.canonicalize(Dates.CompoundPeriod(Dates.Millisecond(dtim)))
+    println("Simulation took : ", dt_v)
 
 end
 

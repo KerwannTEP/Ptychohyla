@@ -14,7 +14,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63874515662892
+    default = 63876158837329
 end
 parsed_args = parse_args(tabargs)
 
@@ -29,7 +29,7 @@ const srun = string(run)
 
 function plot_data()
 
-    data=readdlm(path_data*"iom_snapshots_"*srun*".txt")
+    data=readdlm(path_data*"snapshots_"*srun*"/iom_snapshots_"*srun*".txt")
 
     plt = plot(data[:,1], [data[:,4]], 
         label=:false, 
@@ -40,7 +40,7 @@ function plot_data()
     display(plt)
     readline()
 
-    datab=readdlm(path_data*"pos_snapshots_"*srun*".txt")
+    datab=readdlm(path_data*"snapshots_"*srun*"/pos_snapshots_"*srun*".txt")
 
     pltb = plot(datab[:,2], [datab[:,3]], 
             # xlims=(-10,10), ylims=(-10,10), 

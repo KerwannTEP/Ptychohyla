@@ -4,14 +4,14 @@ using DelimitedFiles
 function write_data!(time::Float64, tab_stars::Array{Float64}, tab_IOM::Array{Float64})
     
     n_digits = floor(Int64,-log10(dt))+1
-    namefile = path_dir*"data/pos_snapshots_"*srun*".txt"
+    namefile = folder_output*"snapshots_"*srun*"/pos_snapshots_"*srun*".txt"
 
     io = open(namefile, "a")
     writedlm(io, transpose([round(time, digits=n_digits); tab_stars]))
     close(io)
 
     # https://discourse.julialang.org/t/adding-to-existing-txt-file-created-by-writedlm/6907/2
-    namefile_iom = path_dir*"data/iom_snapshots_"*srun*".txt"
+    namefile_iom = folder_output*"snapshots_"*srun*"/iom_snapshots_"*srun*".txt"
     io2 = open(namefile_iom, "a")
     writedlm(io2, transpose([round(time, digits=n_digits); tab_IOM]))
     close(io2)
