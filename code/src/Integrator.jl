@@ -1,7 +1,9 @@
-function tab_acc_U!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64})
 
+function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64})
+
+
+    # Add the contribution from the host 
     Threads.@threads for i=1:Npart 
-        tid = Threads.threadid()
 
         x, y, z, vx, vy, vz = tab_stars[i, :]
         ax_internal, ay_internal, az_internal, U_internal = acc_U_internal(i, tab_stars)
@@ -15,41 +17,47 @@ function tab_acc_U!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint
         tab_acc[i, 2] = ay
         tab_acc[i, 3] = az
 
+        r = sqrt(x^2 + y^2 + z^2)
+        R = sqrt(x^2 + y^2)
+        psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
+
+        tab_Uc[i] = mass * psi_xyz
         tab_Uint[i] = U_internal
 
-    end
 
+    end
 
 end
 
-function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, first_timestep::Bool=false)
+
+function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool)
 
     # Integrate each star
-    # N-body forces + Host potential
+    # N-body force (GPU) + Host potential
 
-    tab_stars_temp = tab_stars
-
-    
     # Leapfrog 
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
 
-    # v_{k} -> v_{k+1/2} = v_{k} + a_{k}*dt/2
-    # a_{k} = F(x_{k})
-
     if (first_timestep)
-        tab_acc_U!(tab_stars_temp, tab_acc, tab_Uint)
-        first_timestep = false 
+        update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     end
 
+
+    # Write snapshot data
+    # If first timestep, then Uint are computed just above.
+    # If not, then position, velocities and Uint were updated in the previous timestep
+    if (index % N_dt == 0)
+        if !(index == 0 && (RESTART)) # If not the IC of the restart (already saved in previous run)
+            write_data!(time, tab_stars, tab_Uint, tab_Uc)
+        end  
+    end
+
+
+    # v_{k} -> v_{k+1/2} = v_{k} + a_{k}*dt/2
+    # a_{k} = F(x_{k})
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        # ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
-        # ax_host, ay_host, az_host = acc_host(x, y, z) 
-
-        # ax = ax_internal + ax_host
-        # ay = ay_internal + ay_host
-        # az = az_internal + az_host
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -65,12 +73,10 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
 
     end
 
-    tab_stars_temp = tab_stars
-
     # x_{k} -> x_{k+1} = x_{k} + v_{k+1/2}*dt/2
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         dx = dt * vx
         dy = dt * vy 
@@ -82,22 +88,14 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
 
     end
 
-    tab_stars_temp = tab_stars
+
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
 
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})
-
-    tab_acc_U!(tab_stars_temp, tab_acc, tab_Uint)
-
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        # ax_internal, ay_internal, az_internal = acc_internal(i, tab_stars_temp)
-        # ax_host, ay_host, az_host = acc_host(x, y, z) 
-
-        # ax = ax_internal + ax_host
-        # ay = ay_internal + ay_host
-        # az = az_internal + az_host
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -113,8 +111,16 @@ function integrate_stars_leapfrog!(tab_stars::Array{Float64}, tab_acc::Array{Flo
 
     end
 
+    return nothing
 
 end
+
+
+
+
+
+
+
 
 # Implement 4th order Yoshida integrator ?
 # https://en.wikipedia.org/wiki/Leapfrog_integration#4th_order_Yoshida_integrator

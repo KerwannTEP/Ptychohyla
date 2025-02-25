@@ -2,6 +2,10 @@ using DelimitedFiles
 using CSV 
 using DataFrames
 
+############################################################################################################################################
+#  Initialization
+############################################################################################################################################
+
 function initialize_stars!(tab_stars::Array{Float64})
 
     # Load King sphere in Henon units
@@ -35,46 +39,51 @@ function initialize_stars!(tab_stars::Array{Float64})
 
 end
 
+function initialize_stars_restart!(tab_stars::Array{Float64})
 
-# force on star k from all other stars
-# tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
-function acc_internal(k::Int64, tab_stars::Array{Float64})
+    # Load last saved snapshot 
+    # Fill data
+    # Return restart time
 
-    ax = 0.0
-    ay = 0.0
-    az = 0.0
+    listFiles = readdir(folder_output*"snapshots_"*srun*"/"; join=true)
+    nsnap = length(listFiles)
+    tabt = zeros(Float64, nsnap)
 
-    xk = tab_stars[k,1]
-    yk = tab_stars[k,2]
-    zk = tab_stars[k,3]
+    for i=1:nsnap 
+        interm = split(split(listFiles[i],"_")[end],".")
+        interm = interm[1]*"."*interm[2]
+        time = parse(Float64, interm)
 
-    for i=1:Npart
-        if (i != k)
+        tabt[i] = time 
+    end
 
-            xi = tab_stars[i,1]
-            yi = tab_stars[i,2]
-            zi = tab_stars[i,3]
+    p = sortperm(tabt)
 
-            # Vector ri - rk
-            xik = xi - xk 
-            yik = yi - yk 
-            zik = zi - zk 
+    namefile = listFiles[p[nsnap]]
+    time = tabt[p[nsnap]]
 
-            rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    # Array of size (Npart, 8), in Henon units
 
-            intensity = _G*mass/rik^3 
+    Threads.@threads for i=1:Npart 
 
-            ax += intensity * xik
-            ay += intensity * yik
-            az += intensity * zik
-
-        end
+        tab_stars[i, 1] = data_stars[i, 1]
+        tab_stars[i, 2] = data_stars[i, 2]
+        tab_stars[i, 3] = data_stars[i, 3]
+        tab_stars[i, 4] = data_stars[i, 4]
+        tab_stars[i, 5] = data_stars[i, 5]
+        tab_stars[i, 6] = data_stars[i, 6]
 
     end
 
-    return ax, ay, az
+    return time
 
 end
+
+############################################################################################################################################
+# Accelerations and interaction energies
+############################################################################################################################################
+
 
 
 function acc_U_internal(k::Int64, tab_stars::Array{Float64})
@@ -117,19 +126,5 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
 
 
     return ax, ay, az, U
-
-end
-
-# force on star k from all other stars
-# tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
-function force_internal(k::Int64, tab_stars::Array{Float64})
-
-    ax, ay, az = acc_internal(k, tab_stars)
-
-    Fx = mass * ax
-    Fy = mass * ay
-    Fz = mass * az
-
-    return Fx, Fy, Fz
 
 end

@@ -30,6 +30,10 @@ EPS=0.01 # Softening length of the gravitational interaction, in Henon units
 # Perform the run
 
 RUN=Main.jl
+FOLDER_OUTPUT=/path/to/data/output/
+
+RESTART=false # Is this run a restart ? (true or false)
+ID=-1 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
 
 cd ../code/src/king
 
@@ -37,5 +41,6 @@ julia -t 12 ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --d_cluster ${DIST} --c ${C} --Rs_host ${RS} --Mvir_halo ${MHALO} \
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
-                --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS}
-                
+                --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
+                # --folder_output ${FOLDER_OUTPUT} \
+                # --restart ${RESTART} --id ${ID}
