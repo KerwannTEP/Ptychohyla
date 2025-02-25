@@ -2,6 +2,8 @@ using ArgParse
 
 # https://github.com/carlrodriguez/CHC/blob/mw2014/src/potential/host_potential/static_analytic_potential/host_potential.h
 
+const folder_dir = @__DIR__ 
+
 ##################################################
 # Parsing of the command-line arguments
 ##################################################
@@ -26,7 +28,7 @@ tabargs = ArgParseSettings()
     "--d_cluster"
     help = "Distance of the cluster to the host potential's centre (in kpc)"
     arg_type = Float64
-    default = 8.50e+0
+    default = 4.0e+0
 
 
 
@@ -86,6 +88,20 @@ tabargs = ArgParseSettings()
     help = "Softening length"
     arg_type = Float64
     default = 0.001
+
+    "--folder_output"
+    help = "Output folder of the data"
+    arg_type = String
+    default = folder_dir  * "/../../../data/"
+
+    "--restart"
+    help = "Is the run a restart (true or false) ?"
+    arg_type = Bool
+    default = false
+    "--id"
+    help = "Impose a run's id"
+    arg_type = Int64
+    default = -1
 end
 parsed_args = parse_args(tabargs)
 
@@ -114,3 +130,8 @@ const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
+
+const folder_output = parsed_args["folder_output"]
+
+const RESTART = parsed_args["restart"]
+const id_default = parsed_args["id"]

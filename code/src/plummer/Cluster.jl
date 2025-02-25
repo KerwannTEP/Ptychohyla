@@ -25,13 +25,59 @@ function initialize_stars!(tab_stars::Array{Float64})
 end
 
 
-# force on star k from all other stars
-# tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
-function acc_internal(k::Int64, tab_stars::Array{Float64})
+function initialize_stars_restart!(tab_stars::Array{Float64})
+
+    # Load last saved snapshot 
+    # Fill data
+    # Return restart time
+
+    listFiles = readdir(folder_output*"snapshots_"*srun*"/"; join=true)
+    nsnap = length(listFiles)
+    tabt = zeros(Float64, nsnap)
+
+    for i=1:nsnap 
+        interm = split(split(listFiles[i],"_")[end],".")
+        interm = interm[1]*"."*interm[2]
+        time = parse(Float64, interm)
+
+        tabt[i] = time 
+    end
+
+    p = sortperm(tabt)
+
+    namefile = listFiles[p[nsnap]]
+    time = tabt[p[nsnap]]
+
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    # Array of size (Npart, 8), in Henon units
+
+    Threads.@threads for i=1:Npart 
+
+        tab_stars[i, 1] = data_stars[i, 1]
+        tab_stars[i, 2] = data_stars[i, 2]
+        tab_stars[i, 3] = data_stars[i, 3]
+        tab_stars[i, 4] = data_stars[i, 4]
+        tab_stars[i, 5] = data_stars[i, 5]
+        tab_stars[i, 6] = data_stars[i, 6]
+
+    end
+
+    return time
+
+end
+
+############################################################################################################################################
+# Accelerations and interaction energies
+############################################################################################################################################
+
+
+
+function acc_U_internal(k::Int64, tab_stars::Array{Float64})
 
     ax = 0.0
     ay = 0.0
     az = 0.0
+    U = 0.0
 
     xk = tab_stars[k,1]
     yk = tab_stars[k,2]
@@ -52,29 +98,19 @@ function acc_internal(k::Int64, tab_stars::Array{Float64})
             rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
 
             intensity = _G*mass/rik^3 
+            intensityU = - _G*mass*mass/rik
 
             ax += intensity * xik
             ay += intensity * yik
             az += intensity * zik
+            U += intensityU
 
         end
 
     end
 
-    return ax, ay, az
 
-end
 
-# force on star k from all other stars
-# tab_stars : (k, 6) : star k : (x,y,z,vx,vy,vz) : Npart stars
-function force_internal(k::Int64, tab_stars::Array{Float64})
-
-    ax, ay, az = acc_internal(k, tab_stars)
-
-    Fx = mass * ax
-    Fy = mass * ay
-    Fz = mass * az
-
-    return Fx, Fy, Fz
+    return ax, ay, az, U
 
 end

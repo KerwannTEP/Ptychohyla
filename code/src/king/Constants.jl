@@ -69,6 +69,7 @@ const _G = 1.0
 # >>> G * l**3/(m*t**2)
 # <Quantity 4.49850215e-12
 
+# Conversion HU to astrophysical units
 const M_HU_in_Msun = Mtot_Msun # Value of 1 HU mass in solar masses
 const R_HU_in_kpc = get_Rv_in_kpc() # Value of 1 HU length in kpc
 const G_in_kpc_MSun_Myr = 4.49850215e-12

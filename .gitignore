@@ -7,5 +7,6 @@ data/plot
 data/gif
 data/snapshots_*
 data/*.txt
+data/*.hf5
 code/script/old
 

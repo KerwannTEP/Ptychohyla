@@ -42,5 +42,5 @@ julia -t 12 ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
-                # --folder_output ${FOLDER_OUTPUT} \
-                # --restart ${RESTART} --id ${ID}
+                --folder_output ${FOLDER_OUTPUT} \
+                --restart ${RESTART} --id ${ID}
