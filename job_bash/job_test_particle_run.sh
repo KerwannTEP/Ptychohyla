@@ -35,5 +35,5 @@ julia -t 12 ${RUN} --d_cluster ${DIST} --c ${C} --Rs_host ${RS} --Mvir_halo ${MH
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
-                # --folder_output ${FOLDER_OUTPUT}
+                --folder_output ${FOLDER_OUTPUT}
                 

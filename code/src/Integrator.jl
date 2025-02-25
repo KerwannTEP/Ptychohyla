@@ -33,7 +33,7 @@ end
 function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool)
 
     # Integrate each star
-    # N-body force (GPU) + Host potential
+    # N-body force + Host potential
 
     # Leapfrog 
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
@@ -122,10 +122,11 @@ end
 
 
 
-# Implement 4th order Yoshida integrator ?
+# 4th order Yoshida integrator
 # https://en.wikipedia.org/wiki/Leapfrog_integration#4th_order_Yoshida_integrator
 
-function integrate_stars_yoshida!(tab_stars::Array{Float64})
+
+function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool)
 
     w0 = - cbrt(2.0)/(2.0 - cbrt(2.0))
     w1 = 1.0/(2.0 - cbrt(2.0))
@@ -137,10 +138,29 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
     d3 = d1 
     d2 = w0
 
-    tab_stars_temp = tab_stars
+    # Integrate each star
+    # N-body force + Host potential
+
+    
+
+
+    # Write snapshot data
+    # If first timestep, then Uint are computed just above.
+    # If not, then position, velocities and Uint were updated in the previous timestep
+    if (index % N_dt == 0)
+        if !(index == 0 && (RESTART)) # If not the IC of the restart (already saved in previous run)
+
+            # Compute integral of motions
+            update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+
+            write_data!(time, tab_stars, tab_Uint, tab_Uc)
+        end  
+    end
+
+    # Drift 1
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         dx = c1 * vx * dt
         dy = c1 * vy * dt
@@ -152,16 +172,15 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
 
     end
 
-    tab_stars_temp = tab_stars
+    # Kick 1
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars_temp)
-        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
-        ax = (Fx_internal + Fx_host)/mass
-        ay = (Fy_internal + Fy_host)/mass
-        az = (Fz_internal + Fz_host)/mass
+        ax = tab_acc[i, 1]
+        ay = tab_acc[i, 2]
+        az = tab_acc[i, 3]
 
         dvx = d1 * ax * dt 
         dvy = d1 * ay * dt 
@@ -173,10 +192,10 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
 
     end
 
-    tab_stars_temp = tab_stars
+    # Drift 2
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         dx = c2 * vx * dt
         dy = c2 * vy * dt
@@ -188,16 +207,15 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
 
     end
 
-    tab_stars_temp = tab_stars
+    # Kick 2
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars_temp)
-        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
-        ax = (Fx_internal + Fx_host)/mass
-        ay = (Fy_internal + Fy_host)/mass
-        az = (Fz_internal + Fz_host)/mass
+        ax = tab_acc[i, 1]
+        ay = tab_acc[i, 2]
+        az = tab_acc[i, 3]
 
         dvx = d2 * ax * dt 
         dvy = d2 * ay * dt 
@@ -209,10 +227,10 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
 
     end
 
-    tab_stars_temp = tab_stars
+    # Drift 3
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         dx = c3 * vx * dt
         dy = c3 * vy * dt
@@ -224,16 +242,15 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
 
     end
 
-    tab_stars_temp = tab_stars
+    # Kick 3
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
-        Fx_internal, Fy_internal, Fz_internal = force_internal(i, tab_stars_temp)
-        Fx_host, Fy_host, Fz_host = force_host(x, y, z) #force_NFW(x, y, z)
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
-        ax = (Fx_internal + Fx_host)/mass
-        ay = (Fy_internal + Fy_host)/mass
-        az = (Fz_internal + Fz_host)/mass
+        ax = tab_acc[i, 1]
+        ay = tab_acc[i, 2]
+        az = tab_acc[i, 3]
 
         dvx = d3 * ax * dt 
         dvy = d3 * ay * dt 
@@ -245,10 +262,10 @@ function integrate_stars_yoshida!(tab_stars::Array{Float64})
 
     end
 
-    tab_stars_temp = tab_stars
+    # Drift 4
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars_temp[i, :]
+        x, y, z, vx, vy, vz = tab_stars[i, :]
 
         dx = c4 * vx * dt
         dy = c4 * vy * dt
