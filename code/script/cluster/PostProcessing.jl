@@ -86,7 +86,9 @@ function get_data()
 
     end
 
-    tab_IOM = zeros(Float64, nsnap, 8) # time, E_tot, Lz, nb_unbound
+    tab_IOM = zeros(Float64, nsnap, 6) # time, E_tot, Lx, Ly, Lz, nb_unbound
+    tab_lag = zeros(Float64, nsnap, 5) # 1% 10% 20% 50% 90% 
+    tab_nc = zeros(Float64, nsnap) # Central density
 
     for isnap=1:nsnap
 
@@ -103,6 +105,7 @@ function get_data()
         Uc_t =  zeros(Float64, Threads.nthreads())
         Uh_t =  zeros(Float64, Threads.nthreads())
         L_t =  zeros(Float64, Threads.nthreads(), 3)
+        
 
         Threads.@threads for i=1:Npart 
 
@@ -163,7 +166,7 @@ function get_data()
         Etot = K + U
 
         # Compute number of unbound stars
-        n_unbound_t = zeros(Float64, Threads.nthreads())
+        n_unbound_t = zeros(Int64, Threads.nthreads())
 
         tab_pos = zeros(Float64, 3, Npart)
 
@@ -193,6 +196,7 @@ function get_data()
             tab_dens[k] = dens_loc # Filling in the array of densities
         end
 
+        tab_dens_pos_t = zeros(Float64, Threads.nthreads(), 3)
         tab_dens_vel_t = zeros(Float64, Threads.nthreads(), 3)
         tab_dens_t =  zeros(Float64, Threads.nthreads())
         
@@ -203,6 +207,10 @@ function get_data()
             x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
             rho = tab_dens[i]
             
+            tab_dens_pos_t[tid, 1] += x * rho
+            tab_dens_pos_t[tid, 2] += y * rho
+            tab_dens_pos_t[tid, 3] += z * rho
+
             tab_dens_vel_t[tid, 1] += vx * rho
             tab_dens_vel_t[tid, 2] += vy * rho
             tab_dens_vel_t[tid, 3] += vz * rho
@@ -213,11 +221,18 @@ function get_data()
         end
 
         rho_tot = 0.0
+        Xc = 0.0
+        Yc = 0.0
+        Zc = 0.0
         Vcx = 0.0
         Vcy = 0.0
         Vcz = 0.0
 
         for tid=1:Threads.nthreads()
+
+            Xc += tab_dens_pos_t[tid, 1]
+            Yc += tab_dens_pos_t[tid, 2]
+            Zc += tab_dens_pos_t[tid, 3]
 
             Vcx += tab_dens_vel_t[tid, 1]
             Vcy += tab_dens_vel_t[tid, 2]
@@ -232,6 +247,12 @@ function get_data()
         Vcy /= rho_tot
         Vcz /= rho_tot
 
+        Xc /= rho_tot
+        Yc /= rho_tot
+        Zc /= rho_tot
+
+        
+
         Threads.@threads for i=1:Npart
 
             tid = Threads.threadid()
@@ -239,6 +260,7 @@ function get_data()
             # Unbound particles 
             x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
 
+       
             # Let x_c is the density center of the cluster.
             # It is a proxy for the cluster's center 
             # What about the velocity vc of that center ?
@@ -251,12 +273,12 @@ function get_data()
             Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
     
             if (Ec >= 0.0)
-                n_unbound_t[tid] += 1.0
+                n_unbound_t[tid] += 1
             end
     
         end
 
-        n_unbound = 0.0
+        n_unbound = 0
 
         for tid=1:Threads.nthreads()
             n_unbound += n_unbound_t[tid]
@@ -269,15 +291,67 @@ function get_data()
         tab_IOM[isnap,5] = L[3]
         tab_IOM[isnap,6] = n_unbound
 
+        # Lagrange radii 
+        n_bound = Npart -n_unbound
+        tabr = zeros(Float64, n_bound)
+
+        index = 1
+        for i=1:Npart
+
+            
+    
+            # Unbound particles 
+            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+
+            
+
+            # Let x_c is the density center of the cluster.
+            # It is a proxy for the cluster's center 
+            # What about the velocity vc of that center ?
+            # Calculation show that vc = dxc/dt + fluctuations 1/N
+
+            vc_x = vx - Vcx
+            vc_y = vy - Vcy
+            vc_z = vz - Vcz
+    
+            Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+    
+            if (Ec < 0.0)
+                r = sqrt((x-Xc)^2 + (y-Yc)^2 + (z-Zc)^2) 
+                tabr[index] = r
+                index += 1
+            end
+    
+        end
+
+        tabr = sort(tabr)
+
+        index_1 = floor(Int64, n_bound * 0.01)
+        index_10 = floor(Int64, n_bound * 0.10)
+        index_20 = floor(Int64, n_bound * 0.20)
+        index_50 = floor(Int64, n_bound * 0.50)
+        index_90 = floor(Int64, n_bound * 0.90)
+
+        tab_lag[isnap, 1] = tabr[index_1]
+        tab_lag[isnap, 2] = tabr[index_10]
+        tab_lag[isnap, 3] = tabr[index_20]
+        tab_lag[isnap, 4] = tabr[index_50]
+        tab_lag[isnap, 5] = tabr[index_90]
+
+        index_05 = floor(Int64, n_bound * 0.005)
+        tab_nc[isnap] = index_05/(4.0/3.0*pi*tabr[index_05]^3) # Number/Volume
+        
+
     end
 
-    return tab_IOM
+
+    return tab_IOM, tab_lag, tab_nc
 
 end
 
 function plot_data!()
 
-    tab_IOM = get_data()
+    tab_IOM, tab_lag, tab_nc = get_data()
     datat = tab_IOM[:, 1]  .* T_HU_in_Myr
     dataE = tab_IOM[:, 2]
     dataLx = tab_IOM[:, 3]
@@ -381,6 +455,58 @@ function plot_data!()
     namefile_pdf = path_data*"plot/count_unbound_cluster_"*srun*".pdf"
     savefig(plt, namefile_pdf)
 
+    
+
+    # Lagrange radii
+    rh = tab_lag[1, 4] # Half-mass radius at t=0
+    Trh = 0.138 * rh^(3/2) * Npart/log(0.11*Npart)
+
+
+    plt = plot(datat[1:n] ./ Trh, [tab_lag[:, 1] tab_lag[:, 2] tab_lag[:, 3] tab_lag[:, 4] tab_lag[:, 5]], 
+        labels=[L"r_{0.01}" L"r_{0.10}" L"r_{0.20}" L"r_{0.50}" L"r_{0.90}"], 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
+        ylabel="Lagrange radii", 
+        yaxis=:log10,
+        ylims=(0.01, 10.0),
+        xlims=(0, datat[n]/ Trh),
+        color=[:blue :orange :green :purple :red],
+        # aspect_ratio=1,
+        xticks=0:5:25,
+        yticks=10.0 .^ (-2:1:1),
+        frame=:box)
+
+    # Add the softening radius
+    eps_soft = 0.001
+    plot!(plt, [0, datat[n]/ Trh], [eps_soft, eps_soft], linestyle=:dash, color=:black)#, label="Softening length")
+
+    display(plt)
+    readline()
+
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/lagrange_radii_"*srun*".pdf"
+    savefig(plt, namefile_pdf)
+
+
+    # Central density n_c(0)
+    plt = plot(datat[1:n] ./ Trh, [tab_nc], 
+        labels=:false, 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
+        ylabel="Central density "*L"n_c"*" [HU]", 
+        yaxis=:log10,
+        # ylims=(0.01, 10.0),
+        xlims=(0, datat[n]./ Trh),
+        color=:black,
+        # aspect_ratio=1,
+        xticks=0:5:25,
+        # yticks=10.0 .^ (-2:1:1),
+        frame=:box)
+
+    display(plt)
+    readline()
+
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/central_density_"*srun*".pdf"
+    savefig(plt, namefile_pdf)
 end 
 
 
