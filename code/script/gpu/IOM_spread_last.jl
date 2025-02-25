@@ -58,6 +58,10 @@ const nb_neigh = 10
 
 function get_data()
 
+    if (isfile(path_data*"snapshots_"*srun*"/.DS_Store"))
+        rm(path_data*"snapshots_"*srun*"/.DS_Store")
+    end
+    
     listFiles = readdir(path_data*"snapshots_"*srun*"/";join=true)
     nsnap = length(listFiles)
     tabt = zeros(Float64, nsnap)

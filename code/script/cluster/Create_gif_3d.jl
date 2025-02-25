@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875411207673
+    default = 63875434463958
 
 end
 parsed_args = parse_args(tabargs)
@@ -69,7 +69,7 @@ function plot_data()
     # nsnap=200
 
     # (x,y,z)
-    anim = @animate for i=1:5:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]

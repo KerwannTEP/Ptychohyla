@@ -6,6 +6,7 @@ using Plots.PlotMeasures
 using ArgParse
 using NearestNeighbors
 using LaTeXStrings
+using HDF5
 
 const path_to_script = @__DIR__
 
@@ -56,6 +57,10 @@ const mass = 1.0/Npart
 const nb_neigh = 10
 
 function get_data()
+
+    if (isfile(path_data*"snapshots_"*srun*"/.DS_Store"))
+        rm(path_data*"snapshots_"*srun*"/.DS_Store")
+    end
 
     listFiles = readdir(path_data*"snapshots_"*srun*"/";join=true)
     nsnap = length(listFiles)
@@ -280,6 +285,26 @@ function plot_data!()
     dataLz = tab_IOM[:, 5]
     dataUnbound = tab_IOM[:, 6]
 
+    namefile_hf5 = path_data*"iom_cluster_"*srun*".hf5"
+    file = h5open(namefile_hf5, "w")
+
+    write(file, "data_time", datat)
+    write(file, "data_Etot", dataE)
+    write(file, "data_Lx", dataLx)
+    write(file, "data_Ly", dataLy)
+    write(file, "data_Lz", dataLz)
+    write(file, "data_unbound_frac", dataUnbound ./ Npart)
+
+    write(file, "Npart", Npart)
+    write(file, "kpc_per_HU", R_HU_in_kpc)
+    write(file, "G_in_kpc_MSun_Myr", G_in_kpc_MSun_Myr)
+    write(file, "Msun_per_HU", M_HU_in_Msun)
+
+    write(file, "Myr_per_HU", T_HU_in_Myr)
+
+    close(file)
+
+
     # Energy
     n = length(dataE)
     dataFracE = abs.(1.0 .- dataE[2:n] ./ dataE[1])
@@ -345,7 +370,7 @@ function plot_data!()
         ylabel="Fraction of unbound stars [%]", 
         xlims=(0, datat[n]),
         # aspect_ratio=1,
-        xticks=0:250:2500,
+        xticks=0:250:5000,
         yticks=0:5:100,
         frame=:box)
 
