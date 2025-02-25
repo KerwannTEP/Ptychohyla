@@ -34,7 +34,8 @@ function main()
             println("Progress = ", round(time/time_end, digits=4), " | Energy = ", tab_IOM[3])
         end
 
-        integrate_one_leapfrog!(tab_stars)
+        # integrate_one_leapfrog!(tab_stars)
+        integrate_one_yoshida!(tab_stars)
         time += dt
         index += 1
 

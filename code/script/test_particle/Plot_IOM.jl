@@ -14,7 +14,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63876158837329
+    default = 63876166088701
 end
 parsed_args = parse_args(tabargs)
 
@@ -31,10 +31,16 @@ function plot_data()
 
     data=readdlm(path_data*"snapshots_"*srun*"/iom_snapshots_"*srun*".txt")
 
-    plt = plot(data[:,1], [data[:,4]], 
+    dataE = data[:,4]
+    nsnap = length(dataE)
+
+
+    datafE = abs.(dataE[2:nsnap] ./ dataE[1] .- 1.0)
+
+    plt = plot(data[2:nsnap,1], [datafE], 
         label=:false, 
         xlabel="Time [HU]", 
-        ylabel="Energy [HU]", 
+        ylabel="Fractional energy [HU]", 
         frame=:box)
 
     display(plt)
