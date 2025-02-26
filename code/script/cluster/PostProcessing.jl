@@ -26,7 +26,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875434463958
+    default = 63876214464358 #63875434463958
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -86,7 +86,7 @@ function get_data()
 
     end
 
-    tab_IOM = zeros(Float64, nsnap, 6) # time, E_tot, Lx, Ly, Lz, nb_unbound
+    tab_IOM = zeros(Float64, nsnap, 10) # time, E_tot, Lx, Ly, Lz, nb_unbound, E_wrt_cluster, Lx_cluster, Ly_cluster, Lz_cluster
     tab_lag = zeros(Float64, nsnap, 5) # 1% 10% 20% 50% 90% 
     tab_nc = zeros(Float64, nsnap) # Central density
 
@@ -251,7 +251,9 @@ function get_data()
         Yc /= rho_tot
         Zc /= rho_tot
 
-        
+        Etot_wrt_cluster_t = zeros(Float64, Threads.nthreads())
+        L_wrt_cluster_t = zeros(Float64, Threads.nthreads(), 3)
+
 
         Threads.@threads for i=1:Npart
 
@@ -271,7 +273,16 @@ function get_data()
             vc_z = vz - Vcz
     
             Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
-    
+
+            x_c = x - Xc
+            y_c = y - Yc
+            z_c = z - Zc
+
+            Etot_wrt_cluster_t[tid] += 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + 0.5*Uint + Uc 
+            L_wrt_cluster_t[tid, 1] += m * (y_c*vc_z - z_c*vc_y)
+            L_wrt_cluster_t[tid, 2] += m * (x_c*vc_z - z_c*vc_x)
+            L_wrt_cluster_t[tid, 3] += m * (x_c*vc_y - y_c*vc_x)
+
             if (Ec >= 0.0)
                 n_unbound_t[tid] += 1
             end
@@ -282,6 +293,10 @@ function get_data()
 
         for tid=1:Threads.nthreads()
             n_unbound += n_unbound_t[tid]
+            tab_IOM[isnap,7] += Etot_wrt_cluster_t[tid]
+            tab_IOM[isnap,8] += L_wrt_cluster_t[tid, 1]
+            tab_IOM[isnap,9] += L_wrt_cluster_t[tid, 2]
+            tab_IOM[isnap,10] += L_wrt_cluster_t[tid, 3]
         end
     
         tab_IOM[isnap,1] = time
