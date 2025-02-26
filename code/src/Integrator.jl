@@ -7,23 +7,33 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
 
         x, y, z, vx, vy, vz, m = tab_stars[i, :]
         ax_internal, ay_internal, az_internal, U_internal = acc_U_internal(i, tab_stars)
-        ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        ax = ax_internal + ax_host
-        ay = ay_internal + ay_host
-        az = az_internal + az_host
+        ax = ax_internal
+        ay = ay_internal
+        az = az_internal
+
+        if (HAS_HOST)
+            ax_host, ay_host, az_host = acc_host(x, y, z) 
+
+            ax += ax_host
+            ay += ay_host
+            az += az_host
+        end
 
         tab_acc[i, 1] = ax
         tab_acc[i, 2] = ay
         tab_acc[i, 3] = az
-
-        r = sqrt(x^2 + y^2 + z^2)
-        R = sqrt(x^2 + y^2)
-        psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
-
-        tab_Uc[i] = m * psi_xyz
         tab_Uint[i] = U_internal
 
+        if (HAS_HOST)
+            r = sqrt(x^2 + y^2 + z^2)
+            R = sqrt(x^2 + y^2)
+            psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
+
+            tab_Uc[i] = m * psi_xyz
+        end
+
+        
 
     end
 

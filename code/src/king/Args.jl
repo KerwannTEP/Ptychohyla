@@ -85,6 +85,11 @@ tabargs = ArgParseSettings()
     arg_type = Float64
     default = 0.001
 
+    "--host"
+    help = "Do we include a host potential (true or false) ?"
+    arg_type = Bool
+    default = true
+
     "--folder_output"
     help = "Output folder of the data"
     arg_type = String
@@ -125,6 +130,8 @@ const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
+
+const HAS_HOST = parsed_args["host"]
 
 const folder_output = parsed_args["folder_output"]
 

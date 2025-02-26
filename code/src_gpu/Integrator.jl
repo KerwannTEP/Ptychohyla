@@ -3,22 +3,26 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
     # Compute contribution from the cluster self-gravity (GPU acceleration)
     tab_acc_Uint_int_gpu!(tab_acc, tab_Uint, tab_stars[:, 1:3], tab_stars[:, 7])
 
-    # Add the contribution from the host 
-    Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz, m = tab_stars[i, :]
-        ax_host, ay_host, az_host = acc_host(x, y, z) 
+    if (HAS_HOST)
+        # Add the contribution from the host 
+        Threads.@threads for i=1:Npart 
 
-        tab_acc[i, 1] += ax_host
-        tab_acc[i, 2] += ay_host
-        tab_acc[i, 3] += az_host
+            x, y, z, vx, vy, vz, m = tab_stars[i, :]
+            ax_host, ay_host, az_host = acc_host(x, y, z) 
 
-        r = sqrt(x^2 + y^2 + z^2)
-        R = sqrt(x^2 + y^2)
-        psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
+            tab_acc[i, 1] += ax_host
+            tab_acc[i, 2] += ay_host
+            tab_acc[i, 3] += az_host
 
-        tab_Uc[i] = m * psi_xyz
+            r = sqrt(x^2 + y^2 + z^2)
+            R = sqrt(x^2 + y^2)
+            psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
 
+            tab_Uc[i] = m * psi_xyz
+
+
+        end
 
     end
 
