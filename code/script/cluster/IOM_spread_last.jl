@@ -89,7 +89,7 @@ function get_data()
     namefile = sortedFiles[end]
 
     time = round(tabtsort[end] * T_HU_in_Myr, digits=1)
-    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, m, Uint, Uc
 
     n_unbound_t = zeros(Int64, Threads.nthreads())
 
@@ -128,7 +128,7 @@ function get_data()
     Threads.@threads for i=1:Npart 
 
         tid = Threads.threadid()
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
         rho = tab_dens[i]
         
         tab_dens_vel_t[tid, 1] += vx * rho
@@ -165,7 +165,7 @@ function get_data()
         tid = Threads.threadid()
 
         # Unbound particles 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
         # Let x_c is the density center of the cluster.
         # It is a proxy for the cluster's center 
@@ -176,7 +176,7 @@ function get_data()
         vc_y = vy - Vcy
         vc_z = vz - Vcz
 
-        Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+        Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
 
         if (Ec >= 0.0)
             n_unbound_t[tid] += 1
@@ -194,7 +194,7 @@ function get_data()
 
     index = 1
     for i=1:Npart 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
         # Let x_c is the density center of the cluster.
         # It is a proxy for the cluster's center 
@@ -205,11 +205,11 @@ function get_data()
         vc_y = vy - Vcy
         vc_z = vz - Vcz
 
-        Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+        Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
 
         if (Ec >= 0.0)
-            E =  0.5 * mass * (vx^2 + vy^2 + vz^2) + Uint + Uc
-            Lz = x*vy - y*vx 
+            E =  0.5 * m * (vx^2 + vy^2 + vz^2) + Uint + Uc
+            Lz = m*(x*vy - y*vx)
             tab_IOM_unbound[index, 1] = E
             tab_IOM_unbound[index, 2] = Lz 
 

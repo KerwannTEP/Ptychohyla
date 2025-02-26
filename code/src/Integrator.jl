@@ -5,7 +5,7 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
     # Add the contribution from the host 
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
         ax_internal, ay_internal, az_internal, U_internal = acc_U_internal(i, tab_stars)
         ax_host, ay_host, az_host = acc_host(x, y, z) 
 
@@ -21,7 +21,7 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
         R = sqrt(x^2 + y^2)
         psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
 
-        tab_Uc[i] = mass * psi_xyz
+        tab_Uc[i] = m * psi_xyz
         tab_Uint[i] = U_internal
 
 
@@ -57,7 +57,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # a_{k} = F(x_{k})
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -76,7 +76,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # x_{k} -> x_{k+1} = x_{k} + v_{k+1/2}*dt/2
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         dx = dt * vx
         dy = dt * vy 
@@ -95,7 +95,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # a_{k+1} = F(x_{k+1})
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -160,7 +160,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     # Drift 1
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         dx = c1 * vx * dt
         dy = c1 * vy * dt
@@ -176,7 +176,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -195,7 +195,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     # Drift 2
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         dx = c2 * vx * dt
         dy = c2 * vy * dt
@@ -211,7 +211,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -230,7 +230,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     # Drift 3
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         dx = c3 * vx * dt
         dy = c3 * vy * dt
@@ -246,7 +246,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         ax = tab_acc[i, 1]
         ay = tab_acc[i, 2]
@@ -265,7 +265,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     # Drift 4
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        x, y, z, vx, vy, vz, m = tab_stars[i, :]
 
         dx = c4 * vx * dt
         dy = c4 * vy * dt

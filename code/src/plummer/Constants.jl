@@ -64,7 +64,7 @@ const V_HU_in_km_s = V_HU_in_kpc_Myr * 977.79222168
 
 # Cluster potential
 const d_host = d_kpc/R_HU_in_kpc # Distance to host's centre
-const mass = _Mtot/Npart
+const mass_avg = _Mtot/Npart
 
 # Dark halo
 const Mvir = Mvir_Msun/(M_HU_in_Msun)

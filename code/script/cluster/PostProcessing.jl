@@ -53,7 +53,7 @@ const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
 const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
-const mass = 1.0/Npart
+const mass_avg = 1.0/Npart
 const nb_neigh = 10
 
 function get_data()
@@ -97,7 +97,7 @@ function get_data()
         namefile = sortedFiles[isnap]
         time = tabtsort[isnap]
 
-        data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+        data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, m, Uint, Uc
 
 
         # tab_vb_t = zeros(Float64, Threads.nthreads(), 3)
@@ -110,7 +110,7 @@ function get_data()
         Threads.@threads for i=1:Npart 
 
             tid = Threads.threadid()
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
             
 
             v2 = vx^2 + vy^2 + vz^2
@@ -121,7 +121,7 @@ function get_data()
             # tab_vb_t[tid, 3] += vz
 
             # Kinetic energy 
-            K_t[tid] += 0.5 * mass * v2 
+            K_t[tid] += 0.5 * m * v2 
 
             # Host potential energy
             Uh_t[tid] += Uc
@@ -135,9 +135,9 @@ function get_data()
             Ly = z*vx - x*vz 
             Lz = x*vy - y*vx 
 
-            L_t[tid, 1] += mass * Lx
-            L_t[tid, 2] += mass * Ly
-            L_t[tid, 3] += mass * Lz
+            L_t[tid, 1] += m * Lx
+            L_t[tid, 2] += m * Ly
+            L_t[tid, 3] += m * Lz
 
         end
        
@@ -204,7 +204,7 @@ function get_data()
         Threads.@threads for i=1:Npart 
 
             tid = Threads.threadid()
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
             rho = tab_dens[i]
             
             tab_dens_pos_t[tid, 1] += x * rho
@@ -258,7 +258,7 @@ function get_data()
             tid = Threads.threadid()
     
             # Unbound particles 
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
        
             # Let x_c is the density center of the cluster.
@@ -270,7 +270,7 @@ function get_data()
             vc_y = vy - Vcy
             vc_z = vz - Vcz
     
-            Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+            Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
     
             if (Ec >= 0.0)
                 n_unbound_t[tid] += 1
@@ -294,16 +294,13 @@ function get_data()
         # Lagrange radii 
         n_bound = Npart -n_unbound
         tabr = zeros(Float64, n_bound)
-
+        tabM = zeros(Float64, n_bound)
         index = 1
+
         for i=1:Npart
 
-            
-    
             # Unbound particles 
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
-
-            
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
             # Let x_c is the density center of the cluster.
             # It is a proxy for the cluster's center 
@@ -314,32 +311,88 @@ function get_data()
             vc_y = vy - Vcy
             vc_z = vz - Vcz
     
-            Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+            Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
     
             if (Ec < 0.0)
                 r = sqrt((x-Xc)^2 + (y-Yc)^2 + (z-Zc)^2) 
                 tabr[index] = r
+
+                tabM[index] = m 
+
                 index += 1
             end
     
         end
 
-        tabr = sort(tabr)
+        p = sortperm(tabr)
+        tabr = tabr[p]
+        tabM = tabM[p]
 
-        index_1 = floor(Int64, n_bound * 0.01)
-        index_10 = floor(Int64, n_bound * 0.10)
-        index_20 = floor(Int64, n_bound * 0.20)
-        index_50 = floor(Int64, n_bound * 0.50)
-        index_90 = floor(Int64, n_bound * 0.90)
+        m_enc = 0.0
 
-        tab_lag[isnap, 1] = tabr[index_1]
-        tab_lag[isnap, 2] = tabr[index_10]
-        tab_lag[isnap, 3] = tabr[index_20]
-        tab_lag[isnap, 4] = tabr[index_50]
-        tab_lag[isnap, 5] = tabr[index_90]
+        for index=1:n_bound
 
-        index_05 = floor(Int64, n_bound * 0.005)
-        tab_nc[isnap] = index_05/(4.0/3.0*pi*tabr[index_05]^3) # Number/Volume
+                r = tabr[index]
+                m = tabM[index]
+
+                m_enc += m
+
+                tabM[index] = m_enc
+
+                if (index == 1)
+                    
+                    # Initialize lagrange radii
+                    tab_lag[isnap, 1] = r 
+                    tab_lag[isnap, 2] = r 
+                    tab_lag[isnap, 3] = r 
+                    tab_lag[isnap, 4] = r 
+                    tab_lag[isnap, 5] = r 
+                else
+
+                    if (tabM[index-1] < 0.01 <= tabM[index])
+                        tab_lag[isnap, 1] = r 
+                    end
+
+                    if (tabM[index-1] < 0.10 <= tabM[index])
+                        tab_lag[isnap, 2] = r 
+                    end
+
+                    if (tabM[index-1] < 0.20 <= tabM[index])
+                        tab_lag[isnap, 3] = r 
+                    end
+
+                    if (tabM[index-1] < 0.50 <= tabM[index])
+                        tab_lag[isnap, 4] = r 
+                    end
+
+                    if (tabM[index-1] < 0.90 <= tabM[index])
+                        tab_lag[isnap, 5] = r 
+                    end
+
+                end
+
+
+            end
+    
+        end
+
+        # tabr = sort(tabr)
+
+        # index_1 = floor(Int64, n_bound * 0.01)
+        # index_10 = floor(Int64, n_bound * 0.10)
+        # index_20 = floor(Int64, n_bound * 0.20)
+        # index_50 = floor(Int64, n_bound * 0.50)
+        # index_90 = floor(Int64, n_bound * 0.90)
+
+        # tab_lag[isnap, 1] = tabr[index_1]
+        # tab_lag[isnap, 2] = tabr[index_10]
+        # tab_lag[isnap, 3] = tabr[index_20]
+        # tab_lag[isnap, 4] = tabr[index_50]
+        # tab_lag[isnap, 5] = tabr[index_90]
+
+        index_01 = floor(Int64, n_bound * 0.01)
+        r_01 = tab_lag[isnap, 1]
+        tab_nc[isnap] = index_01/(4.0/3.0*pi*r_01^3) # Number/Volume
         
 
     end

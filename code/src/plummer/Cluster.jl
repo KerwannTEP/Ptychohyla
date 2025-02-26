@@ -18,6 +18,7 @@ function initialize_stars!(tab_stars::Array{Float64})
         tab_stars[i, 4] = data[i, 4]
         tab_stars[i, 5] = vcirc + data[i, 5] # Circular velocity: cluster goes in the y-direction
         tab_stars[i, 6] = data[i, 6]
+        tab_stars[i, 7] = mass_avg
 
     end
 
@@ -48,7 +49,7 @@ function initialize_stars_restart!(tab_stars::Array{Float64})
     namefile = listFiles[p[nsnap]]
     time = tabt[p[nsnap]]
 
-    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, m, Uint, Uc
     # Array of size (Npart, 8), in Henon units
 
     Threads.@threads for i=1:Npart 
@@ -59,6 +60,7 @@ function initialize_stars_restart!(tab_stars::Array{Float64})
         tab_stars[i, 4] = data_stars[i, 4]
         tab_stars[i, 5] = data_stars[i, 5]
         tab_stars[i, 6] = data_stars[i, 6]
+        tab_stars[i, 7] = data_stars[i, 7]
 
     end
 
