@@ -21,6 +21,7 @@ function get_Rv_in_kpc()
 
     # Mtot = 1 HU 
     m_enc = 0.0
+    Rh_HU = 0.0
     for i=1:Npart 
         r = datar[i]
         m_enc += datam[i]

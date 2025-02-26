@@ -26,7 +26,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875434463958 #63875411207673
+    default = 63875434463958
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -297,6 +297,8 @@ function get_data()
         tabM = zeros(Float64, n_bound)
         index = 1
 
+        Mbound = 0.0
+
         for i=1:Npart
 
             # Unbound particles 
@@ -318,6 +320,7 @@ function get_data()
                 tabr[index] = r
 
                 tabM[index] = m 
+                Mbound += m
 
                 index += 1
             end
@@ -332,49 +335,49 @@ function get_data()
 
         for index=1:n_bound
 
-                r = tabr[index]
-                m = tabM[index]
+            r = tabr[index]
+            m = tabM[index]
 
-                m_enc += m
+            m_enc += m
 
-                tabM[index] = m_enc
+            tabM[index] = m_enc
 
-                if (index == 1)
-                    
-                    # Initialize lagrange radii
+            if (index == 1)
+                
+                # Initialize lagrange radii
+                tab_lag[isnap, 1] = r 
+                tab_lag[isnap, 2] = r 
+                tab_lag[isnap, 3] = r 
+                tab_lag[isnap, 4] = r 
+                tab_lag[isnap, 5] = r 
+            else
+
+                if (tabM[index-1] < 0.01 * Mbound <= tabM[index])
                     tab_lag[isnap, 1] = r 
-                    tab_lag[isnap, 2] = r 
-                    tab_lag[isnap, 3] = r 
-                    tab_lag[isnap, 4] = r 
-                    tab_lag[isnap, 5] = r 
-                else
-
-                    if (tabM[index-1] < 0.01 <= tabM[index])
-                        tab_lag[isnap, 1] = r 
-                    end
-
-                    if (tabM[index-1] < 0.10 <= tabM[index])
-                        tab_lag[isnap, 2] = r 
-                    end
-
-                    if (tabM[index-1] < 0.20 <= tabM[index])
-                        tab_lag[isnap, 3] = r 
-                    end
-
-                    if (tabM[index-1] < 0.50 <= tabM[index])
-                        tab_lag[isnap, 4] = r 
-                    end
-
-                    if (tabM[index-1] < 0.90 <= tabM[index])
-                        tab_lag[isnap, 5] = r 
-                    end
-
                 end
 
+                if (tabM[index-1] < 0.10 * Mbound <= tabM[index])
+                    tab_lag[isnap, 2] = r 
+                end
+
+                if (tabM[index-1] < 0.20 * Mbound <= tabM[index])
+                    tab_lag[isnap, 3] = r 
+                end
+
+                if (tabM[index-1] < 0.50 * Mbound <= tabM[index])
+                    tab_lag[isnap, 4] = r 
+                end
+
+                if (tabM[index-1] < 0.90 * Mbound <= tabM[index])
+                    tab_lag[isnap, 5] = r 
+                end
 
             end
-    
+
+
         end
+    
+        
 
         # tabr = sort(tabr)
 
@@ -530,7 +533,7 @@ function plot_data!()
 
     # Add the softening radius
     eps_soft = 0.001
-    plot!(plt, [0, datat[n]/ Trh], [eps_soft, eps_soft], linestyle=:dash, color=:black)#, label="Softening length")
+    plot!(plt, [0, datat[n]/ Trh], [eps_soft, eps_soft], linestyle=:dash, color=:black, label=:false)#, label="Softening length")
 
     display(plt)
     readline()
