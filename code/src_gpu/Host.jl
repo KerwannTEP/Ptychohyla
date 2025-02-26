@@ -39,19 +39,6 @@ function acc_bulge(x::Float64, y::Float64, z::Float64)
     return ax, ay, az 
 end
 
-function force_bulge(x::Float64, y::Float64, z::Float64)
-
-    ax, ay, az = acc_bulge(x, y, z)
-
-    Fx = mass * ax
-    Fy = mass * ay
-    Fz = mass * az
-
-    return Fx, Fy, Fz 
-
-end
-
-# This is wrong ?
 function psi_bulge(r::Float64)
 
     xr = (r/rc_bulge)^2
@@ -99,18 +86,6 @@ function acc_disk(x::Float64, y::Float64, z::Float64)
     ay = aR * y/R 
 
     return ax, ay, az
-
-end
-
-function force_disk(x::Float64, y::Float64, z::Float64)
-
-    ax, ay, az = acc_disk(x, y, z)
-
-    Fx = mass * ax
-    Fy = mass * ay
-    Fz = mass * az
-
-    return Fx, Fy, Fz 
 
 end
 
@@ -167,18 +142,6 @@ function acc_halo(x::Float64, y::Float64, z::Float64)
 
 end
 
-function force_halo(x::Float64, y::Float64, z::Float64)
-
-    ax, ay, az = acc_halo(x, y, z)
-
-    Fx = mass * ax
-    Fy = mass * ay
-    Fz = mass * az
-
-    return Fx, Fy, Fz 
-
-end
-
 function psi_halo(r::Float64)
 
     x = r/Rs
@@ -222,20 +185,6 @@ function acc_host(x::Float64, y::Float64, z::Float64)
     az = az_h + az_d + az_b
 
     return ax, ay, az 
-
-end
-
-function force_host(x::Float64, y::Float64, z::Float64)
-
-    Fx_b, Fy_b, Fz_b = force_bulge(x, y, z)
-    Fx_d, Fy_d, Fz_d = force_disk(x, y, z)
-    Fx_h, Fy_h, Fz_h = force_halo(x, y, z)
-
-    Fx = Fx_h + Fx_d + Fx_b
-    Fy = Fy_h + Fy_d + Fy_b
-    Fz = Fz_h + Fz_d + Fz_b
-
-    return Fx, Fy, Fz 
 
 end
 

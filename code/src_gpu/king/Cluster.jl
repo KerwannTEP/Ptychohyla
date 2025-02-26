@@ -16,6 +16,7 @@ function initialize_stars!(tab_stars::Array{Float64})
     df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
 
+    datam = df[:, 3]
     datax = df[:, 6]
     datay = df[:, 7]
     dataz = df[:, 8]
@@ -36,6 +37,7 @@ function initialize_stars!(tab_stars::Array{Float64})
         tab_stars[i, 4] = datavx[i]
         tab_stars[i, 5] = vcirc + datavy[i] # Circular velocity: cluster goes in the y-direction
         tab_stars[i, 6] = datavz[i]
+        tab_stars[i, 7] = datam[i]
 
     end
 
@@ -65,7 +67,7 @@ function initialize_stars_restart!(tab_stars::Array{Float64})
     namefile = listFiles[p[nsnap]]
     time = tabt[p[nsnap]]
 
-    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, m, Uint, Uc
     # Array of size (Npart, 8), in Henon units
 
     Threads.@threads for i=1:Npart 
@@ -76,6 +78,7 @@ function initialize_stars_restart!(tab_stars::Array{Float64})
         tab_stars[i, 4] = data_stars[i, 4]
         tab_stars[i, 5] = data_stars[i, 5]
         tab_stars[i, 6] = data_stars[i, 6]
+        tab_stars[i, 7] = data_stars[i, 7]
 
     end
 
@@ -89,7 +92,7 @@ end
 ############################################################################################################################################
 
 # https://developer.nvidia.com/gpugems/gpugems3/part-v-physics-simulation/chapter-31-fast-n-body-simulation-cuda
-function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceArray{T}, tab_pos_z::CuDeviceArray{T}, 
+function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDeviceArray{T}, tab_pos_z::CuDeviceArray{T}, tab_m::CuDeviceArray{T}, 
                             tab_acc_x::CuDeviceArray{T}, tab_acc_y::CuDeviceArray{T}, tab_acc_z::CuDeviceArray{T}, tab_Uint::CuDeviceArray{T}) where T
 
 
@@ -107,6 +110,7 @@ function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDev
         x = tab_pos_x[gtid]
         y = tab_pos_y[gtid]
         z = tab_pos_z[gtid]
+        m = tab_m[gtid]
 
     end
 
@@ -120,7 +124,7 @@ function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDev
 
     # https://cuda.juliagpu.org/stable/development/kernel/#Shared-memory
     # https://cuda.juliagpu.org/stable/api/kernel/#Shared-memory
-    shPosition = CuDynamicSharedArray(T, (blockDim().x, 3))
+    shPosition = CuDynamicSharedArray(T, (blockDim().x, 4))
 
     # Interaction of the star with the N stars of the clusters (include itself)
     while (i <= Npart)
@@ -135,6 +139,7 @@ function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDev
             shPosition[threadIdx().x, 1] = tab_pos_x[idx]
             shPosition[threadIdx().x, 2] = tab_pos_y[idx]
             shPosition[threadIdx().x, 3] = tab_pos_z[idx]
+            shPosition[threadIdx().x, 4] = tab_m[idx]
 
         end
 
@@ -158,11 +163,12 @@ function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDev
                     dx = shPosition[j,1] - x
                     dy = shPosition[j,2] - y
                     dz = shPosition[j,3] - z
+                    mj = shPosition[j,4]
 
                     dr = sqrt(dx*dx + dy*dy + dz*dz + eps*eps)
 
-                    ar = _G*mass/dr^3 
-                    Uij = - _G*mass*mass/dr # Interaction potential between gtid and 
+                    ar = _G*mj/dr^3 
+                    Uij = - _G*m*mj/dr # Interaction potential between gtid and 
                     
                     ax += ar * dx
                     ay += ar * dy
@@ -196,7 +202,7 @@ function compute_acc_Uint_int_gpu!(tab_pos_x::CuDeviceArray{T}, tab_pos_y::CuDev
 end 
 
 
-function tab_acc_Uint_int_gpu!(tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_pos::Array{Float64})
+function tab_acc_Uint_int_gpu!(tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_pos::Array{Float64}, tab_m::Array{Float64})
 
     tab_pos_x = tab_pos[:,1]
     tab_pos_y = tab_pos[:,2]
@@ -207,6 +213,7 @@ function tab_acc_Uint_int_gpu!(tab_acc::Array{Float64}, tab_Uint::Array{Float64}
     dev_tab_pos_x = CuArray(tab_pos_x)
     dev_tab_pos_y = CuArray(tab_pos_y)
     dev_tab_pos_z = CuArray(tab_pos_z)
+    dev_tab_m = CuArray(tab_m)
 
     dev_tab_acc_x = CuArray(zeros(Float64, Npart))
     dev_tab_acc_y = CuArray(zeros(Float64, Npart))
@@ -214,7 +221,7 @@ function tab_acc_Uint_int_gpu!(tab_acc::Array{Float64}, tab_Uint::Array{Float64}
     dev_tab_Uint = CuArray(zeros(Float64, Npart))
 
 
-    @cuda threads=nbThreadsPerBlocks blocks=numblocks shmem=3*nbThreadsPerBlocks*sizeof(Float64) compute_acc_Uint_int_gpu!(dev_tab_pos_x, dev_tab_pos_y, dev_tab_pos_z,
+    @cuda threads=nbThreadsPerBlocks blocks=numblocks shmem=4*nbThreadsPerBlocks*sizeof(Float64) compute_acc_Uint_int_gpu!(dev_tab_pos_x, dev_tab_pos_y, dev_tab_pos_z, dev_tab_m,
                                                                                                                 dev_tab_acc_x, dev_tab_acc_y, dev_tab_acc_z, dev_tab_Uint)
 
     tab_acc_x = Array(dev_tab_acc_x)
