@@ -31,6 +31,10 @@ function get_Rv_in_kpc()
         end
     end
 
+    
+   
+
+
     # Rh_HU = datar[div(Npart, 2)]
     Rt_HU = datar[Npart]
 
@@ -42,6 +46,10 @@ function get_Rv_in_kpc()
 
     println("Rv [kpc] = ", Rv_in_kpc)
     println("Rt [kpc] = ", Rt_in_kpc)
+
+    Trh = 0.138 * Rh_HU^(3/2) * Npart/log(0.11*Npart)
+
+    println("T_{rh,i} [HU] = ", Trh)
 
     return Rv_in_kpc
 

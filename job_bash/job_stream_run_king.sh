@@ -22,19 +22,19 @@ ADISK=3.0
 BDISK=0.280
 
 # Run parameters
-TEND=100.0 # Final time, in Henon units
-DT=0.01 # Timestep, in Henon units
-NDT=100 # Frequency of snapshot save
-EPS=0.01 # Softening length of the gravitational interaction, in Henon units
-HAS_HOST=false # Is there a host potential ? (true or false)
+TEND=2000.0 #2000.0 # Final time, in Henon units
+DT=0.1 # Timestep, in Henon units
+NDT=10 # Frequency of snapshot save
+EPS=0.00 #0.01 # Softening length of the gravitational interaction, in Henon units
+HAS_HOST=true # Is there a host potential ? (true or false)
 
 # Perform the run
 
 RUN=Main.jl
-FOLDER_OUTPUT=/path/to/data/output/
+FOLDER_OUTPUT=/Users/tep/Documents/GitHub/Ptychohyla/data/ #/path/to/data/output/
 
-RESTART=false # Is this run a restart ? (true or false)
-ID=-1 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
+RESTART=true # Is this run a restart ? (true or false)
+ID=63876260926195 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
 
 cd ../code/src/king
 
@@ -44,5 +44,5 @@ julia -t 12 ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
                 --host ${HAS_HOST} \
-                --folder_output ${FOLDER_OUTPUT} \
-                --restart ${RESTART} --id ${ID}
+                # --folder_output ${FOLDER_OUTPUT} \
+                # --restart ${RESTART} --id ${ID}
