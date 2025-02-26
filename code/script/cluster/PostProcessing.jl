@@ -440,6 +440,11 @@ function plot_data!()
     write(file, "data_Lz", dataLz)
     write(file, "data_unbound_frac", dataUnbound ./ Npart)
 
+    write(file, "data_E_wrt_cluster", tab_IOM[:, 7])
+    write(file, "data_Lx_wrt_cluster", tab_IOM[:, 8])
+    write(file, "data_Ly_wrt_cluster", tab_IOM[:, 9])
+    write(file, "data_Lz_wrt_cluster", tab_IOM[:, 10])
+
     write(file, "Npart", Npart)
     write(file, "kpc_per_HU", R_HU_in_kpc)
     write(file, "G_in_kpc_MSun_Myr", G_in_kpc_MSun_Myr)
