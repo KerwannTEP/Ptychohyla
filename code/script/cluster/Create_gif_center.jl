@@ -25,7 +25,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875434463958
+    default = 63876335961361#63875434463958
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -80,7 +80,7 @@ function plot_data()
 
     # nsnap = 1000
 
-    anim = @animate for i=1:5:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
@@ -140,11 +140,11 @@ function plot_data()
         datayc = sin(-theta) .* datax + cos(-theta) .* datay
 
 
-        rmax = 1.0 # kpc
+        rmax = 0.1#1.0 # kpc
         s = 1.0
 
          # Plot circular orbit 
-        d_c = 4.0 # kpc
+        d_c = 0.0#4.0 # kpc
 
         Rc = sqrt(Xc^2 + Yc^2)
 

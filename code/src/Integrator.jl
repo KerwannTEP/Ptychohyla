@@ -290,7 +290,14 @@ function update_tab_acc_jerk_snap_Uint!(tab_stars::Array{Float64}, tab_acc::Arra
      
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        # x, y, z, vx, vy, vz = tab_stars[i, :]
+        x = tab_stars[i,1]
+        y = tab_stars[i,2]
+        z = tab_stars[i,3]
+        vx = tab_stars[i,4]
+        vy = tab_stars[i,5]
+        vz = tab_stars[i,6]
+
         ax_internal, ay_internal, az_internal, jx_internal, jy_internal, jz_internal, U_internal = acc_jerk_U_internal(i, tab_stars)
         
         ax = ax_internal 
@@ -319,20 +326,20 @@ function update_tab_acc_jerk_snap_Uint!(tab_stars::Array{Float64}, tab_acc::Arra
 
     end
 
-    Threads.@threads for i=1:Npart 
+    # Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
-        sx_internal, sy_internal, sz_internal = snap_internal(i, tab_stars, tab_jerk, tab_snap)
+    #     x, y, z, vx, vy, vz = tab_stars[i, :]
+    #     sx_internal, sy_internal, sz_internal = snap_internal(i, tab_stars, tab_jerk, tab_snap)
         
-        sx = sx_internal 
-        sy = sy_internal
-        sz = sz_internal
+    #     sx = sx_internal 
+    #     sy = sy_internal
+    #     sz = sz_internal
 
-        tab_snap[i, 1] = sx
-        tab_snap[i, 2] = sy
-        tab_snap[i, 3] = sz
+    #     tab_snap[i, 1] = sx
+    #     tab_snap[i, 2] = sy
+    #     tab_snap[i, 3] = sz
 
-    end
+    # end
 
 end
 
@@ -346,6 +353,7 @@ end
 # TODO: Implement adaptive (block) timesteps
 # Using jerk snap
 # Eventually convert to GPU
+# https://articles.adsabs.harvard.edu/pdf/1992PASJ...44..141M
 function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_jerk::Array{Float64}, tab_snap::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64})
 
     # Integrate each star
@@ -354,6 +362,8 @@ function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{
     # Predictor corrector
     # 4th order Hermite integrator
 
+    # println(index)
+    # println("a0")
 
 
     update_tab_acc_jerk_snap_Uint!(tab_stars, tab_acc, tab_jerk, tab_snap, tab_Uint, tab_Uc)
@@ -361,6 +371,7 @@ function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{
     tab_jerk_pred = tab_jerk
 
 
+    # println("a1")
     # Write snapshot data
     if (index % N_dt == 0)
         if !(index == 0 && (RESTART)) # If not the IC of the restart (already saved in previous run)
@@ -368,12 +379,20 @@ function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{
         end  
     end
 
+    # println("a2")
     # Predictor 
     # r_{pred,k} = rk + vk*dt + 1/2*ak*dt^2 + 1/6*jk*dt^3
     # v_{pred,k} = vk + ak*dt + 1/2*jk*dt^2
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
+        # x, y, z, vx, vy, vz = tab_stars[i, :]
+        x = tab_stars[i,1]
+        y = tab_stars[i,2]
+        z = tab_stars[i,3]
+        vx = tab_stars[i,4]
+        vy = tab_stars[i,5]
+        vz = tab_stars[i,6]
+
         ax, ay, az = tab_acc[i, :]
         jx, jy, jz = tab_jerk[i, :]
 
@@ -394,6 +413,7 @@ function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{
 
     end
 
+    # println("a3")
 
     # Corrector
     # r_{corr,k} = r_{pred,k} + 1/2*(a_{new,k}-ak)*dt^2 + 1/120*(j_{new,k}-jk)*dt^4
@@ -401,21 +421,49 @@ function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{
 
     update_tab_acc_jerk_snap_Uint!(tab_stars, tab_acc, tab_jerk, tab_snap, tab_Uint, tab_Uc)
 
+    # println("a4")
+
     Threads.@threads for i=1:Npart 
 
-        x, y, z, vx, vy, vz = tab_stars[i, :]
-        ax_new, ay_new, az_new = tab_acc[i, :]
-        jx_new, jy_new, jz_new = tab_jerk[i, :]
-        ax, ay, az = tab_acc_pred[i, :]
-        jx, jy, jz = tab_jerk_pred[i, :]
+        # x, y, z, vx, vy, vz = tab_stars[i, :]
+        x = tab_stars[i,1]
+        y = tab_stars[i,2]
+        z = tab_stars[i,3]
+        vx = tab_stars[i,4]
+        vy = tab_stars[i,5]
+        vz = tab_stars[i,6]
 
-        x_corr = x + 1/24*(ax_new-ax)*dt^2 + 1/120*(jx_new-jx)*dt^4
-        y_corr = y + 1/24*(ay_new-ay)*dt^2 + 1/120*(jy_new-jy)*dt^4
-        z_corr = z + 1/24*(az_new-az)*dt^2 + 1/120*(jz_new-jz)*dt^4
+        ax_1, ay_1, az_1 = tab_acc[i, :]
+        jx_1, jy_1, jz_1 = tab_jerk[i, :]
+        ax_0, ay_0, az_0 = tab_acc_pred[i, :]
+        jx_0, jy_0, jz_0 = tab_jerk_pred[i, :]
 
-        vx_corr = vx + 1/6*(ax_new-ax)*dt + 1/24*(jx_new-jx)*dt^3
-        vy_corr = vy + 1/6*(ay_new-ay)*dt + 1/24*(jy_new-jy)*dt^3
-        vz_corr = vz + 1/6*(az_new-az)*dt + 1/24*(jz_new-jz)*dt^3
+        a2x_0 = (-6*(ax_0-ax_1) - dt*(4*jx_0+2*jx_1))/dt^2
+        a2y_0 = (-6*(ay_0-ay_1) - dt*(4*jy_0+2*jy_1))/dt^2
+        a2z_0 = (-6*(az_0-az_1) - dt*(4*jz_0+2*jz_1))/dt^2
+
+        a3x_0 = (12*(ax_0-ax_1) + 6*dt*(jx_0+jx_1))/dt^3
+        a3y_0 = (12*(ay_0-ay_1) + 6*dt*(jy_0+jy_1))/dt^3
+        a3z_0 = (12*(az_0-az_1) + 6*dt*(jz_0+jz_1))/dt^3
+
+        x_corr = x + 1/24*dt^4*a2x_0 + 1/120*dt^5*a3x_0
+        y_corr = y + 1/24*dt^4*a2y_0 + 1/120*dt^5*a3y_0
+        z_corr = z + 1/24*dt^4*a2z_0 + 1/120*dt^5*a3z_0
+
+        vx_corr = vx + 1/6*dt^3*a2x_0 + 1/24*dt^4*a3x_0
+        vy_corr = vy + 1/6*dt^3*a2y_0 + 1/24*dt^4*a3y_0
+        vz_corr = vz + 1/6*dt^3*a2z_0 + 1/24*dt^4*a3z_0
+
+
+
+
+        # x_corr = x + 1/24*(ax_new-ax)*dt^2 + 1/120*(jx_new-jx)*dt^4
+        # y_corr = y + 1/24*(ay_new-ay)*dt^2 + 1/120*(jy_new-jy)*dt^4
+        # z_corr = z + 1/24*(az_new-az)*dt^2 + 1/120*(jz_new-jz)*dt^4
+
+        # vx_corr = vx + 1/6*(ax_new-ax)*dt + 1/24*(jx_new-jx)*dt^3
+        # vy_corr = vy + 1/6*(ay_new-ay)*dt + 1/24*(jy_new-jy)*dt^3
+        # vz_corr = vz + 1/6*(az_new-az)*dt + 1/24*(jz_new-jz)*dt^3
 
         tab_stars[i, 1] = x_corr
         tab_stars[i, 2] = y_corr
@@ -427,6 +475,8 @@ function integrate_stars_hermite!(index::Int64, time::Float64, tab_stars::Array{
 
     end
 
+
+    # println("a5")
     return nothing
 
 end

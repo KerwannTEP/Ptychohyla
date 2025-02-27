@@ -22,18 +22,18 @@ ADISK=3.0
 BDISK=0.280
 
 # Run parameters
-TEND=100.0 # Final time, in Henon units
+TEND=20.0 # Final time, in Henon units
 DT=0.01 # Timestep, in Henon units
 NDT=100 # Frequency of snapshot save
-EPS=0.01 # Softening length of the gravitational interaction, in Henon units
+EPS=0.001 # Softening length of the gravitational interaction, in Henon units
 
 # Perform the run
 
 RUN=Main.jl
-FOLDER_OUTPUT=/path/to/data/output/
+FOLDER_OUTPUT=/Users/tep/Documents/GitHub/Ptychohyla/data/ #/path/to/data/output/
 
-RESTART=false # Is this run a restart ? (true or false)
-ID=-1 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
+RESTART=true # Is this run a restart ? (true or false)
+ID=63876335961361 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
 
 cd ../code/src/king
 
@@ -42,5 +42,5 @@ julia -t 12 ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
-                --folder_output ${FOLDER_OUTPUT} \
-                --restart ${RESTART} --id ${ID}
+                # --folder_output ${FOLDER_OUTPUT} \
+                # --restart ${RESTART} --id ${ID}

@@ -27,11 +27,11 @@ function initialize_stars!(tab_stars::Array{Float64})
 
     Threads.@threads for i=1:Npart 
 
-        tab_stars[i, 1] = d_host + datax[i] # Cluster on the x>0 x-axis
+        tab_stars[i, 1] = datax[i]# + d_host # Cluster on the x>0 x-axis
         tab_stars[i, 2] = datay[i]
         tab_stars[i, 3] = dataz[i]
         tab_stars[i, 4] = datavx[i]
-        tab_stars[i, 5] = vcirc + datavy[i] # Circular velocity: cluster goes in the y-direction
+        tab_stars[i, 5] = datavy[i] #+ vcirc  # Circular velocity: cluster goes in the y-direction
         tab_stars[i, 6] = datavz[i]
 
     end
@@ -155,9 +155,9 @@ function acc_jerk_U_internal(k::Int64, tab_stars::Array{Float64})
             yi = tab_stars[i,2]
             zi = tab_stars[i,3]
 
-            vxk = tab_stars[i,4]
-            vyk = tab_stars[i,5]
-            vzk = tab_stars[i,6]
+            vxi = tab_stars[i,4]
+            vyi = tab_stars[i,5]
+            vzi = tab_stars[i,6]
 
             # Vector ri - rk
             xik = xi - xk 
@@ -170,19 +170,25 @@ function acc_jerk_U_internal(k::Int64, tab_stars::Array{Float64})
             vzik = vzi - vzk 
 
             rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
+            vik_dot_rik = vxik*xik + vyik*yik + vzik*zik
 
-            intensity = _G*mass/rik^3 
-            intensityU = - _G*mass*mass/rik
+            Ecrit = _G*mass/rik
 
-            ax += intensity * xik
-            ay += intensity * yik
-            az += intensity * zik
+            intensityU = -mass*Ecrit
+            intensityA = Ecrit/rik^2
+            intensityJ = 3.0*(vik_dot_rik)*intensityA/rik^2
+
+            ax += intensityA * xik
+            ay += intensityA * yik
+            az += intensityA * zik
             U += intensityU
 
-            vik_dot_rik = vxik*xik + vyik*yik + vzik*zik
-            jx += _G*mass*(vxik/rik^3 - 3.0*(vik_dot_rik)*xk/rik^5)
-            jy += _G*mass*(vyik/rik^3 - 3.0*(vik_dot_rik)*yk/rik^5)
-            jz += _G*mass*(vzik/rik^3 - 3.0*(vik_dot_rik)*zk/rik^5)
+            
+            jx += intensityA*vxik - intensityJ*xk
+            jy += intensityA*vyik - intensityJ*yk
+            jz += intensityA*vzik - intensityJ*zk
+            # jy += _G*mass*(vyik/rik^3 - 3.0*(vik_dot_rik)*yk/rik^5)
+            # jz += _G*mass*(vzik/rik^3 - 3.0*(vik_dot_rik)*zk/rik^5)
 
         end
 
@@ -221,9 +227,9 @@ function snap_internal(k::Int64, tab_stars::Array{Float64}, tab_acc::Array{Float
             yi = tab_stars[i,2]
             zi = tab_stars[i,3]
 
-            vxk = tab_stars[i,4]
-            vyk = tab_stars[i,5]
-            vzk = tab_stars[i,6]
+            vxi = tab_stars[i,4]
+            vyi = tab_stars[i,5]
+            vzi = tab_stars[i,6]
 
             axi = tab_acc[i,1]
             ayi = tab_acc[i,2]
