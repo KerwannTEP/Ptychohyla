@@ -128,3 +128,145 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
     return ax, ay, az, U
 
 end
+
+function acc_jerk_U_internal(k::Int64, tab_stars::Array{Float64})
+
+    ax = 0.0
+    ay = 0.0
+    az = 0.0
+    U = 0.0
+
+    jx = 0.0
+    jy = 0.0
+    jz = 0.0
+
+    xk = tab_stars[k,1]
+    yk = tab_stars[k,2]
+    zk = tab_stars[k,3]
+
+    vxk = tab_stars[k,4]
+    vyk = tab_stars[k,5]
+    vzk = tab_stars[k,6]
+
+    for i=1:Npart
+        if (i != k)
+
+            xi = tab_stars[i,1]
+            yi = tab_stars[i,2]
+            zi = tab_stars[i,3]
+
+            vxk = tab_stars[i,4]
+            vyk = tab_stars[i,5]
+            vzk = tab_stars[i,6]
+
+            # Vector ri - rk
+            xik = xi - xk 
+            yik = yi - yk 
+            zik = zi - zk 
+
+            # Vector vi - vk
+            vxik = vxi - vxk 
+            vyik = vyi - vyk 
+            vzik = vzi - vzk 
+
+            rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
+
+            intensity = _G*mass/rik^3 
+            intensityU = - _G*mass*mass/rik
+
+            ax += intensity * xik
+            ay += intensity * yik
+            az += intensity * zik
+            U += intensityU
+
+            vik_dot_rik = vxik*xik + vyik*yik + vzik*zik
+            jx += _G*mass*(vxik/rik^3 - 3.0*(vik_dot_rik)*xk/rik^5)
+            jy += _G*mass*(vyik/rik^3 - 3.0*(vik_dot_rik)*yk/rik^5)
+            jz += _G*mass*(vzik/rik^3 - 3.0*(vik_dot_rik)*zk/rik^5)
+
+        end
+
+    end
+
+    return ax, ay, az, jx, jy, jz, U
+
+end
+
+function snap_internal(k::Int64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_jerk::Array{Float64})
+
+    sx = 0.0
+    sy = 0.0
+    sz = 0.0
+
+    xk = tab_stars[k,1]
+    yk = tab_stars[k,2]
+    zk = tab_stars[k,3]
+
+    vxk = tab_stars[k,4]
+    vyk = tab_stars[k,5]
+    vzk = tab_stars[k,6]
+
+    axk = tab_acc[k,1]
+    ayk = tab_acc[k,2]
+    azk = tab_acc[k,3]
+
+    jxk = tab_jerk[k,1]
+    jyk = tab_jerk[k,2]
+    jzk = tab_jerk[k,3]
+
+    for i=1:Npart
+        if (i != k)
+
+            xi = tab_stars[i,1]
+            yi = tab_stars[i,2]
+            zi = tab_stars[i,3]
+
+            vxk = tab_stars[i,4]
+            vyk = tab_stars[i,5]
+            vzk = tab_stars[i,6]
+
+            axi = tab_acc[i,1]
+            ayi = tab_acc[i,2]
+            azi = tab_acc[i,3]
+
+            jxi = tab_jerk[i,1]
+            jyi = tab_jerk[i,2]
+            jzi = tab_jerk[i,3]
+
+            # Vector ri - rk
+            xik = xi - xk 
+            yik = yi - yk 
+            zik = zi - zk 
+
+            # Vector vi - vk
+            vxik = vxi - vxk 
+            vyik = vyi - vyk 
+            vzik = vzi - vzk 
+
+            # Vector ai - ak
+            axik = axi - axk 
+            ayik = ayi - ayk 
+            azik = azi - azk 
+
+            # Vector ji - jk
+            jxik = jxi - jxk 
+            jyik = jyi - jyk 
+            jzik = jzi - jzk 
+
+            rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
+
+            rik_dot_vik =  xik * vxik  +  yik * vyik  +  zik * vzik
+            rik_dot_aik =  xik * axik  +  yik * ayik  +  zik * azik
+            vik_dot_jik = vxik * jxik  + vyik * jyik  + vzik * jzik
+
+            sx += _G*mass*(axik/rik^3 - 3.0*rik_dot_aik*xik/rik^5 - 3.0*vik_dot_jik*xik/rik^5 - 3.0*rik_dot_vik*jxik/rik^5 + 15.0*rik_dot_vik*rik_dot_aik*xik/rik^7)
+            sy += _G*mass*(ayik/rik^3 - 3.0*rik_dot_aik*yik/rik^5 - 3.0*vik_dot_jik*yik/rik^5 - 3.0*rik_dot_vik*jyik/rik^5 + 15.0*rik_dot_vik*rik_dot_aik*yik/rik^7)
+            sz += _G*mass*(azik/rik^3 - 3.0*rik_dot_aik*zik/rik^5 - 3.0*vik_dot_jik*zik/rik^5 - 3.0*rik_dot_vik*jzik/rik^5 + 15.0*rik_dot_vik*rik_dot_aik*zik/rik^7)
+
+        end
+
+    end
+
+    return sx, sy, sz
+
+end
