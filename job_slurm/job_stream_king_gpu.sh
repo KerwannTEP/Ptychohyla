@@ -39,10 +39,10 @@ ADISK=3.0
 BDISK=0.280
 
 # Run parameters
-TEND=100.0 # Final time, in Henon units
-DT=0.01 # Timestep, in Henon units
-NDT=100 # Frequency of snapshot save
-EPS=0.01 # Softening length of the gravitational interaction, in Henon units
+TEND=1500.0 # Final time, in Henon units
+DT=0.001 # Timestep, in Henon units
+NDT=1000 # Frequency of snapshot save
+EPS=0.001 # Softening length of the gravitational interaction, in Henon units
 HAS_HOST=true # Is there a host potential ? (true or false)
 
 # Perform the run
