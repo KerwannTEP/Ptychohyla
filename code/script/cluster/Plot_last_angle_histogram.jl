@@ -157,7 +157,7 @@ function compute_tab_delta_phi()
         tab_delta_phi[i] =  delta_phi
     end
 
-    display(sort(tab_delta_phi))
+    # display(sort(tab_delta_phi))
 
     return tab_delta_phi, time
 

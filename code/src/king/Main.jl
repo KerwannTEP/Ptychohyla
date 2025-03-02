@@ -14,7 +14,7 @@ function main()
 
     timing_start = now()
 
-    tab_stars = zeros(Float64, Npart, 6) # (x, y, z, vx, vy, vz)
+    tab_stars = zeros(Float64, Npart, 7) # (x, y, z, vx, vy, vz, m)
     tab_acc = zeros(Float64, Npart, 3)  
     tab_Uint = zeros(Float64, Npart)
     tab_Uc = zeros(Float64, Npart)

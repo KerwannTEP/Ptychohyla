@@ -12,12 +12,19 @@ function initialize_stars!(tab_stars::Array{Float64})
 
     Threads.@threads for i=1:Npart 
 
-        tab_stars[i, 1] = d_host + data[i, 1] # Cluster on the x>0 x-axis
+        tab_stars[i, 1] = data[i, 1] # Cluster on the x>0 x-axis
         tab_stars[i, 2] = data[i, 2]
         tab_stars[i, 3] = data[i, 3]
         tab_stars[i, 4] = data[i, 4]
-        tab_stars[i, 5] = vcirc + data[i, 5] # Circular velocity: cluster goes in the y-direction
+        tab_stars[i, 5] = data[i, 5] # Circular velocity: cluster goes in the y-direction
         tab_stars[i, 6] = data[i, 6]
+        tab_stars[i, 7] = mass_avg
+
+        if (HAS_HOST)
+            tab_stars[i, 1] += d_host
+            tab_stars[i, 5] += vcirc
+
+        end
 
     end
 
@@ -48,7 +55,7 @@ function initialize_stars_restart!(tab_stars::Array{Float64})
     namefile = listFiles[p[nsnap]]
     time = tabt[p[nsnap]]
 
-    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+    data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, m, Uint, Uc
     # Array of size (Npart, 8), in Henon units
 
     Threads.@threads for i=1:Npart 
@@ -59,6 +66,7 @@ function initialize_stars_restart!(tab_stars::Array{Float64})
         tab_stars[i, 4] = data_stars[i, 4]
         tab_stars[i, 5] = data_stars[i, 5]
         tab_stars[i, 6] = data_stars[i, 6]
+        tab_stars[i, 7] = data_stars[i, 7]
 
     end
 
@@ -82,6 +90,7 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
     xk = tab_stars[k,1]
     yk = tab_stars[k,2]
     zk = tab_stars[k,3]
+    mk = tab_stars[k,7]
 
     for i=1:Npart
         if (i != k)
@@ -89,6 +98,7 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
             xi = tab_stars[i,1]
             yi = tab_stars[i,2]
             zi = tab_stars[i,3]
+            mi = tab_stars[k,7]
 
             # Vector ri - rk
             xik = xi - xk 
@@ -97,8 +107,8 @@ function acc_U_internal(k::Int64, tab_stars::Array{Float64})
 
             rik = sqrt(xik^2 + yik^2 + zik^2 + eps^2)
 
-            intensity = _G*mass/rik^3 
-            intensityU = - _G*mass*mass/rik
+            intensity = _G*mi/rik^3 
+            intensityU = - _G*mk*mi/rik
 
             ax += intensity * xik
             ay += intensity * yik

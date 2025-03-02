@@ -6,18 +6,43 @@ using DataFrames
 function get_Rv_in_kpc()
 
     # Load King sphere in Henon units
-    namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    if (!HAS_MULTI_MASS) 
+        # Single mass
+        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    else 
+        # Multi-mass (half of mass m1, half of mass m2=2*m1)
+        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
+    end
+    
     df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
-
+    datam = df[:, 3]
     datax = df[:, 6]
     datay = df[:, 7]
     dataz = df[:, 8]
 
     datar = sqrt.(datax .^2 + datay .^2 + dataz .^2)
-    datar = sort(datar)
+    p = sortperm(datar)
+    datar = datar[p]
+    datam = datam[p]
 
-    Rh_HU = datar[div(Npart, 2)]
+    # Mtot = 1 HU 
+    m_enc = 0.0
+    Rh_HU = 0.0
+    for i=1:Npart 
+        r = datar[i]
+        m_enc += datam[i]
+        if (m_enc >= 0.5)
+            Rh_HU = r 
+            break
+        end
+    end
+
+    
+   
+
+
+    # Rh_HU = datar[div(Npart, 2)]
     Rt_HU = datar[Npart]
 
     # Rv_in_kpc/Rh_in_kpc = Rv_in_HU/Rh_in_HU
@@ -28,6 +53,10 @@ function get_Rv_in_kpc()
 
     println("Rv [kpc] = ", Rv_in_kpc)
     println("Rt [kpc] = ", Rt_in_kpc)
+
+    Trh = 0.138 * Rh_HU^(3/2) * Npart/log(0.11*Npart)
+
+    println("T_{rh,i} [HU] = ", Trh)
 
     return Rv_in_kpc
 
@@ -96,7 +125,7 @@ const V_HU_in_km_s = V_HU_in_kpc_Myr * 977.79222168
 
 # Cluster potential
 const d_host = d_kpc/R_HU_in_kpc # Distance to host's centre
-const mass = _Mtot/Npart
+const mass_avg = _Mtot/Npart
 
 # Dark halo
 const Mvir = Mvir_Msun/(M_HU_in_Msun)

@@ -26,7 +26,7 @@ tabargs = ArgParseSettings()
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63875434463958 #63875411207673
+    default = 63876214464358 #63875434463958
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -53,7 +53,7 @@ const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
 const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
-const mass = 1.0/Npart
+const mass_avg = 1.0/Npart
 const nb_neigh = 10
 
 function get_data()
@@ -86,7 +86,9 @@ function get_data()
 
     end
 
-    tab_IOM = zeros(Float64, nsnap, 8) # time, E_tot, Lz, nb_unbound
+    tab_IOM = zeros(Float64, nsnap, 10) # time, E_tot, Lx, Ly, Lz, nb_unbound, E_wrt_cluster, Lx_cluster, Ly_cluster, Lz_cluster
+    tab_lag = zeros(Float64, nsnap, 5) # 1% 10% 20% 50% 90% 
+    tab_nc = zeros(Float64, nsnap) # Central density
 
     for isnap=1:nsnap
 
@@ -95,7 +97,7 @@ function get_data()
         namefile = sortedFiles[isnap]
         time = tabtsort[isnap]
 
-        data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, Uint, Uc
+        data_stars = readdlm(namefile) # x, y, z, vx, vy, vz, m, Uint, Uc
 
 
         # tab_vb_t = zeros(Float64, Threads.nthreads(), 3)
@@ -103,11 +105,12 @@ function get_data()
         Uc_t =  zeros(Float64, Threads.nthreads())
         Uh_t =  zeros(Float64, Threads.nthreads())
         L_t =  zeros(Float64, Threads.nthreads(), 3)
+        
 
         Threads.@threads for i=1:Npart 
 
             tid = Threads.threadid()
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
             
 
             v2 = vx^2 + vy^2 + vz^2
@@ -118,7 +121,7 @@ function get_data()
             # tab_vb_t[tid, 3] += vz
 
             # Kinetic energy 
-            K_t[tid] += 0.5 * mass * v2 
+            K_t[tid] += 0.5 * m * v2 
 
             # Host potential energy
             Uh_t[tid] += Uc
@@ -132,9 +135,9 @@ function get_data()
             Ly = z*vx - x*vz 
             Lz = x*vy - y*vx 
 
-            L_t[tid, 1] += mass * Lx
-            L_t[tid, 2] += mass * Ly
-            L_t[tid, 3] += mass * Lz
+            L_t[tid, 1] += m * Lx
+            L_t[tid, 2] += m * Ly
+            L_t[tid, 3] += m * Lz
 
         end
        
@@ -163,7 +166,7 @@ function get_data()
         Etot = K + U
 
         # Compute number of unbound stars
-        n_unbound_t = zeros(Float64, Threads.nthreads())
+        n_unbound_t = zeros(Int64, Threads.nthreads())
 
         tab_pos = zeros(Float64, 3, Npart)
 
@@ -193,6 +196,7 @@ function get_data()
             tab_dens[k] = dens_loc # Filling in the array of densities
         end
 
+        tab_dens_pos_t = zeros(Float64, Threads.nthreads(), 3)
         tab_dens_vel_t = zeros(Float64, Threads.nthreads(), 3)
         tab_dens_t =  zeros(Float64, Threads.nthreads())
         
@@ -200,9 +204,13 @@ function get_data()
         Threads.@threads for i=1:Npart 
 
             tid = Threads.threadid()
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
             rho = tab_dens[i]
             
+            tab_dens_pos_t[tid, 1] += x * rho
+            tab_dens_pos_t[tid, 2] += y * rho
+            tab_dens_pos_t[tid, 3] += z * rho
+
             tab_dens_vel_t[tid, 1] += vx * rho
             tab_dens_vel_t[tid, 2] += vy * rho
             tab_dens_vel_t[tid, 3] += vz * rho
@@ -213,11 +221,18 @@ function get_data()
         end
 
         rho_tot = 0.0
+        Xc = 0.0
+        Yc = 0.0
+        Zc = 0.0
         Vcx = 0.0
         Vcy = 0.0
         Vcz = 0.0
 
         for tid=1:Threads.nthreads()
+
+            Xc += tab_dens_pos_t[tid, 1]
+            Yc += tab_dens_pos_t[tid, 2]
+            Zc += tab_dens_pos_t[tid, 3]
 
             Vcx += tab_dens_vel_t[tid, 1]
             Vcy += tab_dens_vel_t[tid, 2]
@@ -232,12 +247,77 @@ function get_data()
         Vcy /= rho_tot
         Vcz /= rho_tot
 
+        Xc /= rho_tot
+        Yc /= rho_tot
+        Zc /= rho_tot
+
+        Etot_wrt_cluster_t = zeros(Float64, Threads.nthreads())
+        L_wrt_cluster_t = zeros(Float64, Threads.nthreads(), 3)
+
+
         Threads.@threads for i=1:Npart
 
             tid = Threads.threadid()
     
             # Unbound particles 
-            x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
+
+       
+            # Let x_c is the density center of the cluster.
+            # It is a proxy for the cluster's center 
+            # What about the velocity vc of that center ?
+            # Calculation show that vc = dxc/dt + fluctuations 1/N
+
+            vc_x = vx - Vcx
+            vc_y = vy - Vcy
+            vc_z = vz - Vcz
+    
+            Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+
+            x_c = x - Xc
+            y_c = y - Yc
+            z_c = z - Zc
+
+            Etot_wrt_cluster_t[tid] += 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + 0.5*Uint + Uc 
+            L_wrt_cluster_t[tid, 1] += m * (y_c*vc_z - z_c*vc_y)
+            L_wrt_cluster_t[tid, 2] += m * (x_c*vc_z - z_c*vc_x)
+            L_wrt_cluster_t[tid, 3] += m * (x_c*vc_y - y_c*vc_x)
+
+            if (Ec >= 0.0)
+                n_unbound_t[tid] += 1
+            end
+    
+        end
+
+        n_unbound = 0
+
+        for tid=1:Threads.nthreads()
+            n_unbound += n_unbound_t[tid]
+            tab_IOM[isnap,7] += Etot_wrt_cluster_t[tid]
+            tab_IOM[isnap,8] += L_wrt_cluster_t[tid, 1]
+            tab_IOM[isnap,9] += L_wrt_cluster_t[tid, 2]
+            tab_IOM[isnap,10] += L_wrt_cluster_t[tid, 3]
+        end
+    
+        tab_IOM[isnap,1] = time
+        tab_IOM[isnap,2] = Etot
+        tab_IOM[isnap,3] = L[1]
+        tab_IOM[isnap,4] = L[2]
+        tab_IOM[isnap,5] = L[3]
+        tab_IOM[isnap,6] = n_unbound
+
+        # Lagrange radii 
+        n_bound = Npart -n_unbound
+        tabr = zeros(Float64, n_bound)
+        tabM = zeros(Float64, n_bound)
+        index = 1
+
+        Mbound = 0.0
+
+        for i=1:Npart
+
+            # Unbound particles 
+            x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
             # Let x_c is the density center of the cluster.
             # It is a proxy for the cluster's center 
@@ -248,36 +328,101 @@ function get_data()
             vc_y = vy - Vcy
             vc_z = vz - Vcz
     
-            Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+            Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
     
-            if (Ec >= 0.0)
-                n_unbound_t[tid] += 1.0
+            if (Ec < 0.0)
+                r = sqrt((x-Xc)^2 + (y-Yc)^2 + (z-Zc)^2) 
+                tabr[index] = r
+
+                tabM[index] = m 
+                Mbound += m
+
+                index += 1
             end
     
         end
 
-        n_unbound = 0.0
+        p = sortperm(tabr)
+        tabr = tabr[p]
+        tabM = tabM[p]
 
-        for tid=1:Threads.nthreads()
-            n_unbound += n_unbound_t[tid]
+        m_enc = 0.0
+
+        for index=1:n_bound
+
+            r = tabr[index]
+            m = tabM[index]
+
+            m_enc += m
+
+            tabM[index] = m_enc
+
+            if (index == 1)
+                
+                # Initialize lagrange radii
+                tab_lag[isnap, 1] = r 
+                tab_lag[isnap, 2] = r 
+                tab_lag[isnap, 3] = r 
+                tab_lag[isnap, 4] = r 
+                tab_lag[isnap, 5] = r 
+            else
+
+                if (tabM[index-1] < 0.01 * Mbound <= tabM[index])
+                    tab_lag[isnap, 1] = r 
+                end
+
+                if (tabM[index-1] < 0.10 * Mbound <= tabM[index])
+                    tab_lag[isnap, 2] = r 
+                end
+
+                if (tabM[index-1] < 0.20 * Mbound <= tabM[index])
+                    tab_lag[isnap, 3] = r 
+                end
+
+                if (tabM[index-1] < 0.50 * Mbound <= tabM[index])
+                    tab_lag[isnap, 4] = r 
+                end
+
+                if (tabM[index-1] < 0.90 * Mbound <= tabM[index])
+                    tab_lag[isnap, 5] = r 
+                end
+
+            end
+
+
         end
     
-        tab_IOM[isnap,1] = time
-        tab_IOM[isnap,2] = Etot
-        tab_IOM[isnap,3] = L[1]
-        tab_IOM[isnap,4] = L[2]
-        tab_IOM[isnap,5] = L[3]
-        tab_IOM[isnap,6] = n_unbound
+        
+
+        # tabr = sort(tabr)
+
+        # index_1 = floor(Int64, n_bound * 0.01)
+        # index_10 = floor(Int64, n_bound * 0.10)
+        # index_20 = floor(Int64, n_bound * 0.20)
+        # index_50 = floor(Int64, n_bound * 0.50)
+        # index_90 = floor(Int64, n_bound * 0.90)
+
+        # tab_lag[isnap, 1] = tabr[index_1]
+        # tab_lag[isnap, 2] = tabr[index_10]
+        # tab_lag[isnap, 3] = tabr[index_20]
+        # tab_lag[isnap, 4] = tabr[index_50]
+        # tab_lag[isnap, 5] = tabr[index_90]
+
+        index_01 = floor(Int64, n_bound * 0.01)
+        r_01 = tab_lag[isnap, 1]
+        tab_nc[isnap] = index_01/(4.0/3.0*pi*r_01^3) # Number/Volume
+        
 
     end
 
-    return tab_IOM
+
+    return tab_IOM, tab_lag, tab_nc
 
 end
 
 function plot_data!()
 
-    tab_IOM = get_data()
+    tab_IOM, tab_lag, tab_nc = get_data()
     datat = tab_IOM[:, 1]  .* T_HU_in_Myr
     dataE = tab_IOM[:, 2]
     dataLx = tab_IOM[:, 3]
@@ -294,6 +439,11 @@ function plot_data!()
     write(file, "data_Ly", dataLy)
     write(file, "data_Lz", dataLz)
     write(file, "data_unbound_frac", dataUnbound ./ Npart)
+
+    write(file, "data_E_wrt_cluster", tab_IOM[:, 7])
+    write(file, "data_Lx_wrt_cluster", tab_IOM[:, 8])
+    write(file, "data_Ly_wrt_cluster", tab_IOM[:, 9])
+    write(file, "data_Lz_wrt_cluster", tab_IOM[:, 10])
 
     write(file, "Npart", Npart)
     write(file, "kpc_per_HU", R_HU_in_kpc)
@@ -370,7 +520,7 @@ function plot_data!()
         ylabel="Fraction of unbound stars [%]", 
         xlims=(0, datat[n]),
         # aspect_ratio=1,
-        xticks=0:250:5000,
+        xticks=0:50:5000,
         yticks=0:5:100,
         frame=:box)
 
@@ -381,6 +531,58 @@ function plot_data!()
     namefile_pdf = path_data*"plot/count_unbound_cluster_"*srun*".pdf"
     savefig(plt, namefile_pdf)
 
+    
+
+    # Lagrange radii
+    rh = tab_lag[1, 4] # Half-mass radius at t=0
+    Trh = 0.138 * rh^(3/2) * Npart/log(0.11*Npart)
+
+
+    plt = plot(datat[1:n] ./ Trh, [tab_lag[:, 1] tab_lag[:, 2] tab_lag[:, 3] tab_lag[:, 4] tab_lag[:, 5]], 
+        labels=[L"r_{0.01}" L"r_{0.10}" L"r_{0.20}" L"r_{0.50}" L"r_{0.90}"], 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
+        ylabel="Lagrange radii", 
+        yaxis=:log10,
+        ylims=(0.01, 10.0),
+        xlims=(0, datat[n]/ Trh),
+        color=[:blue :orange :green :purple :red],
+        # aspect_ratio=1,
+        xticks=0:1:25,
+        yticks=10.0 .^ (-2:1:1),
+        frame=:box)
+
+    # Add the softening radius
+    eps_soft = 0.001
+    plot!(plt, [0, datat[n]/ Trh], [eps_soft, eps_soft], linestyle=:dash, color=:black, label=:false)#, label="Softening length")
+
+    display(plt)
+    readline()
+
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/lagrange_radii_"*srun*".pdf"
+    savefig(plt, namefile_pdf)
+
+
+    # Central density n_c(0)
+    plt = plot(datat[1:n] ./ Trh, [tab_nc], 
+        labels=:false, 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
+        ylabel="Central density "*L"n_c"*" [HU]", 
+        yaxis=:log10,
+        # ylims=(0.01, 10.0),
+        xlims=(0, datat[n]./ Trh),
+        color=:black,
+        # aspect_ratio=1,
+        xticks=0:1:25,
+        # yticks=10.0 .^ (-2:1:1),
+        frame=:box)
+
+    display(plt)
+    readline()
+
+    mkpath(path_data*"plot/")
+    namefile_pdf = path_data*"plot/central_density_"*srun*".pdf"
+    savefig(plt, namefile_pdf)
 end 
 
 

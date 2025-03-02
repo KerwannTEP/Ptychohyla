@@ -26,7 +26,7 @@ tabargs = ArgParseSettings()
     arg_type = Float64
     default = 4.0e+0
 
-
+    
 
     "--c"
     help = "Halo (NFW) concentration"
@@ -85,6 +85,15 @@ tabargs = ArgParseSettings()
     arg_type = Float64
     default = 0.001
 
+    "--host"
+    help = "Do we include a host potential (true or false) ?"
+    arg_type = Bool
+    default = true
+    "--multi_mass"
+    help = "Use the multi-mass cluster (true or false) ?"
+    arg_type = Bool
+    default = false
+
     "--folder_output"
     help = "Output folder of the data"
     arg_type = String
@@ -125,6 +134,9 @@ const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
+
+const HAS_HOST = parsed_args["host"]
+const HAS_MULTI_MASS = parsed_args["multi_mass"]
 
 const folder_output = parsed_args["folder_output"]
 
