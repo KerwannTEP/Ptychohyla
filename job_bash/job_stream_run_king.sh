@@ -31,10 +31,10 @@ HAS_HOST=true # Is there a host potential ? (true or false)
 # Perform the run
 
 RUN=Main.jl
-FOLDER_OUTPUT=/Users/tep/Documents/GitHub/Ptychohyla/data/ #/path/to/data/output/
+FOLDER_OUTPUT=/path/to/data/output/
 
-RESTART=true # Is this run a restart ? (true or false)
-ID=63876260926195 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
+RESTART=false # Is this run a restart ? (true or false)
+ID=-1 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
 
 cd ../code/src/king
 
@@ -44,5 +44,5 @@ julia -t 12 ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
                 --host ${HAS_HOST} \
-                # --folder_output ${FOLDER_OUTPUT} \
-                # --restart ${RESTART} --id ${ID}
+                --folder_output ${FOLDER_OUTPUT} \
+                --restart ${RESTART} --id ${ID}

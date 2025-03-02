@@ -33,10 +33,10 @@ HAS_HOST=false # Is there a host potential ? (true or false)
 # Perform the run
 
 RUN=Main.jl
-FOLDER_OUTPUT=/Users/tep/Documents/GitHub/Ptychohyla/data/ #/path/to/data/output/
+FOLDER_OUTPUT=/path/to/data/output/
 
-RESTART=true # Is this run a restart ? (true or false)
-ID=63876265001482 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
+RESTART=false # Is this run a restart ? (true or false)
+ID=-1 # Set to -1 for automatic id creation. So to the run's id you want to restart if needed
 
 cd ../code/src/plummer
 

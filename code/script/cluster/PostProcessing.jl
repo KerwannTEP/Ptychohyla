@@ -22,11 +22,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.02 #0.01228105689696044
+    default = 0.01228105689696044
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63876265001482 #63876260926195#63876259454461#63876255539151 #63876214464358 #63875434463958
+    default = 63876214464358 #63875434463958
     "--N"
     help = "Number for particles"
     arg_type = Int64
