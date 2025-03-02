@@ -44,6 +44,7 @@ DT=0.001 # Timestep, in Henon units
 NDT=1000 # Frequency of snapshot save
 EPS=0.001 # Softening length of the gravitational interaction, in Henon units
 HAS_HOST=true # Is there a host potential ? (true or false)
+HAS_MULTI_MASS=false # Multi-mass cluster ?
 
 # Perform the run
 
@@ -60,6 +61,6 @@ julia -t auto ${RUN} --Npart ${N} --M_cluster ${MCLUSTER} --Rh_cluster ${RH} \
                 --M_bulge ${MBULGE} --alpha_bulge ${ALPHA} --rc_bulge ${RC} \
                 --M_disk ${MDISK} --a_disk ${ADISK} --b_disk ${BDISK} \
                 --t_end ${TEND} --dt ${DT} --N_dt ${NDT} --eps ${EPS} \
-                --host ${HAS_HOST} \
+                --host ${HAS_HOST} --multi_mass ${HAS_MULTI_MASS} \
                 --nbThreadsPerBlocks ${NBTHREADSGPU} --folder_output ${FOLDER_OUTPUT} \
                 --restart ${RESTART} --id ${ID}

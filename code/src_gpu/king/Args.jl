@@ -89,6 +89,10 @@ tabargs = ArgParseSettings()
     help = "Do we include a host potential (true or false) ?"
     arg_type = Bool
     default = true
+    "--multi_mass"
+    help = "Use the multi-mass cluster (true or false) ?"
+    arg_type = Bool
+    default = false
 
     "--nbThreadsPerBlocks"
     help = "Number of threads per blocks (GPU)"
@@ -137,6 +141,7 @@ const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
 
 const HAS_HOST = parsed_args["host"]
+const HAS_MULTI_MASS = parsed_args["multi_mass"]
 
 const nbThreadsPerBlocks = parsed_args["nbThreadsPerBlocks"]
 

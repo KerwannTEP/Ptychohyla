@@ -6,7 +6,14 @@ using DataFrames
 function get_Rv_in_kpc()
 
     # Load King sphere in Henon units
-    namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    if (!HAS_MULTI_MASS) 
+        # Single mass
+        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    else 
+        # Multi-mass (half of mass m1, half of mass m2=2*m1)
+        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
+    end
+    
     df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
     datam = df[:, 3]
