@@ -22,11 +22,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.01228105689696044
+    default = 0.01226969736888114 #0.012280754430794917
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63876214464358 #63875434463958
+    default = 63876627199217 #63876627659181
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -520,7 +520,7 @@ function plot_data!()
         ylabel="Fraction of unbound stars [%]", 
         xlims=(0, datat[n]),
         # aspect_ratio=1,
-        xticks=0:50:5000,
+        xticks=0:250:5000,
         yticks=0:5:100,
         frame=:box)
 
@@ -547,7 +547,7 @@ function plot_data!()
         xlims=(0, datat[n]/ Trh),
         color=[:blue :orange :green :purple :red],
         # aspect_ratio=1,
-        xticks=0:1:25,
+        xticks=0:5:25,
         yticks=10.0 .^ (-2:1:1),
         frame=:box)
 
@@ -573,7 +573,7 @@ function plot_data!()
         xlims=(0, datat[n]./ Trh),
         color=:black,
         # aspect_ratio=1,
-        xticks=0:1:25,
+        xticks=0:5:25,
         # yticks=10.0 .^ (-2:1:1),
         frame=:box)
 

@@ -17,15 +17,15 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.01228105689696044
+    default = 0.01226969736888114 #0.012280754430794917
+    "--run"
+    help = "Run id"
+    arg_type = Int64
+    default = 63876627199217 #63876627659181
     "--framerate"
     help = "Number of frames per second"
     arg_type = Int64
     default = 30
-    "--run"
-    help = "Run id"
-    arg_type = Int64
-    default = 63875434463958
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -80,7 +80,7 @@ function plot_data()
 
     # nsnap = 1000
 
-    anim = @animate for i=1:5:nsnap
+    anim = @animate for i=1:1:nsnap
 
         println("Progress = ", i/nsnap)
         namefile = listFile[p[i]]
