@@ -13,7 +13,7 @@ using LaTeXStrings
 
 # z = 0
 
-const run_data = 63875434463958
+const run_data = 63876627659181 # single mass
 const srun_data = string(run_data)
 
 const path_to_script = @__DIR__
@@ -41,7 +41,7 @@ end
 function get_rt_tabr(namefile::String)
 
     # namefile = path_data*"snapshots_"*srun_data*"/time_1000.0.txt"
-    data_stars = readdlm(namefile, header=false) # x, y, z, vx, vy, vz, Uint, Uc
+    data_stars = readdlm(namefile, header=false) # x, y, z, vx, vy, vz, m, Uint, Uc
 
     # Compute density center (position and velocity)
 
@@ -80,7 +80,7 @@ function get_rt_tabr(namefile::String)
     Threads.@threads for i=1:Npart 
 
         tid = Threads.threadid()
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
         rho = tab_dens[i]
         
         tab_Rc_t[tid, 1] += x * rho
@@ -125,7 +125,7 @@ function get_rt_tabr(namefile::String)
         tid = Threads.threadid()
 
         # Unbound particles 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
         # Let x_c is the density center of the cluster.
         # It is a proxy for the cluster's center 
@@ -136,7 +136,7 @@ function get_rt_tabr(namefile::String)
         vc_y = vy - tab_Vc[2]
         vc_z = vz - tab_Vc[3]
 
-        Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+        Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
 
         if (Ec < 0.0)
             n_bound_t[tid] += 1
@@ -151,16 +151,17 @@ function get_rt_tabr(namefile::String)
     end
 
     tabr = zeros(Float64, n_bound)
+    tabm = zeros(Float64, n_bound)
 
     index = 1
     for i=1:Npart 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
         vc_x = vx - tab_Vc[1]
         vc_y = vy - tab_Vc[2]
         vc_z = vz - tab_Vc[3]
 
-        Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+        Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
 
         if (Ec < 0.0)
             x_c = x - tab_Rc[1]
@@ -168,6 +169,7 @@ function get_rt_tabr(namefile::String)
             z_c = z - tab_Rc[3]
 
             tabr[index] = sqrt(x_c^2 + y_c^2 + z_c^2)
+            tabm[index] = m
 
             index += 1
         end
@@ -178,23 +180,24 @@ function get_rt_tabr(namefile::String)
 
     rt = tabr[n_bound]
 
-    return rt, tabr
+    return rt, tabr, tabm
 
 end
 
-function get_tabpsi_tabM(tabr::Array{Float64})
+function get_tabpsi_tabM(tabr::Array{Float64}, tabm::Array{Float64})
 
     nbound = length(tabr)
+    mtot = sum(tabm)
     
     tabM = zeros(Float64, nbound)
     tabpsi = zeros(Float64, nbound)
 
-    tabM[nbound] = _Mtot * nbound/Npart
+    tabM[nbound] = mtot
     tabpsi[nbound] = -_G*tabM[nbound]/tabr[nbound]
 
     for i=nbound-1:-1:1
 
-        tabM[i] = tabM[i+1] - mass 
+        tabM[i] = tabM[i+1] - tabm[i+1] 
         tabpsi[i] = tabpsi[i+1] - _G * tabM[i] * (1.0/tabr[i] - 1.0/tabr[i+1])
 
     end
@@ -382,7 +385,7 @@ function plot_data!()
         rmax = 0.5 # kpc
         s = 1.0
 
-         # Plot circular orbit 
+        # Plot circular orbit 
         d_c = 4.0 # kpc
 
         Rc = sqrt(Xc^2 + Yc^2)
@@ -436,8 +439,8 @@ function plot_data!()
 
         # Compute Lagrange
 
-        rt, tabr = get_rt_tabr(namefile)
-        tabpsi, tabM = get_tabpsi_tabM(tabr)
+        rt, tabr, tabm = get_rt_tabr(namefile)
+        tabpsi, tabM = get_tabpsi_tabM(tabr,tabm)
 
         nbx = 500
 
@@ -468,50 +471,3 @@ end
 @time plot_data!()
 
 
-
-
-
-
-
-#     namefile = path_data*"snapshots_"*srun_data*"/time_1000.0.txt"
-
-#     rt, tabr = get_rt_tabr(namefile)
-#     tabpsi, tabM = get_tabpsi_tabM(tabr)
-
-#     nbx = 1000
-#     rmax = 0.5 # kpc
-
-#     tabx = range(d_host-rmax/R_HU_in_kpc, d_host+rmax/R_HU_in_kpc, length=nbx)
-#     tabpsix = [psi_eff(tabx[i], 0.0, tabr, tabpsi) for i=1:nbx]
-
-#     ixL1 = findmax(tabpsix[1:div(nbx,2)])[2]
-#     ixL2 = findmax(tabpsix[div(nbx,2):nbx])[2] + div(nbx,2) - 1
-
-#     minpsi = minimum(tabpsix)
-#     maxpsi = maximum(tabpsix) + 2
-
-#     # Plot potential
-#     p = plot((tabx .- d_host) .* R_HU_in_kpc, tabpsix, 
-#         xlabel=L"x-x_{\mathrm{c}}"*" [kpc]", ylabel=L"\psi_{\mathrm{eff}} (X,0)",
-#         ylims=(minpsi, maxpsi),
-#         # xticks=-20:1:20,
-#         label=:false,
-#         color=:black,
-#         size=((600, 300)),
-#         frame=:box)
-
-#     # Plot Lagrange radii
-#     scatter!(p, ([tabx[ixL1]] .- d_host) .* R_HU_in_kpc,  [tabpsix[ixL1]], color=:red, label=L"\mathrm{L}_1", ylims=(minpsi, maxpsi))
-#     scatter!(p, ([tabx[ixL2]] .- d_host) .* R_HU_in_kpc,  [tabpsix[ixL2]], color=:blue, label=L"\mathrm{L}_2", ylims=(minpsi, maxpsi))
-
-#     # Plot rt
-#     plot!(p, [-rt, -rt].* R_HU_in_kpc, [-10000, 10000], linestyle=:dash, color=:blue, ylims=(minpsi, maxpsi), label=L"r_t")
-#     plot!(p, [rt, rt].* R_HU_in_kpc, [-10000, 10000], linestyle=:dash, color=:blue, label=:false, ylims=(minpsi, maxpsi))
-
-#     display(p)
-#     readline()
-
-
-# end
-
-# plot_data!()

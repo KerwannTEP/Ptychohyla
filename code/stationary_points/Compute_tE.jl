@@ -13,7 +13,7 @@ using LaTeXStrings
 
 # z = 0
 
-const run_data = 63875434463958
+const run_data = 63876627659181 # single mass
 const srun_data = string(run_data)
 
 const path_to_script = @__DIR__
@@ -51,7 +51,7 @@ end
 
 function get_rt_tabr(namefile::String)
 
-    data_stars = readdlm(namefile, header=false) # x, y, z, vx, vy, vz, Uint, Uc
+    data_stars = readdlm(namefile, header=false) # x, y, z, vx, vy, vz, m, Uint, Uc
 
     # Compute density center (position and velocity)
 
@@ -90,7 +90,7 @@ function get_rt_tabr(namefile::String)
     Threads.@threads for i=1:Npart 
 
         tid = Threads.threadid()
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
         rho = tab_dens[i]
         
         tab_Rc_t[tid, 1] += x * rho
@@ -135,7 +135,7 @@ function get_rt_tabr(namefile::String)
         tid = Threads.threadid()
 
         # Unbound particles 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
         # Let x_c is the density center of the cluster.
         # It is a proxy for the cluster's center 
@@ -146,7 +146,7 @@ function get_rt_tabr(namefile::String)
         vc_y = vy - tab_Vc[2]
         vc_z = vz - tab_Vc[3]
 
-        Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+        Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
 
         if (Ec < 0.0)
             n_bound_t[tid] += 1
@@ -161,16 +161,17 @@ function get_rt_tabr(namefile::String)
     end
 
     tabr = zeros(Float64, n_bound)
+    tabm = zeros(Float64, n_bound)
 
     index = 1
     for i=1:Npart 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
 
         vc_x = vx - tab_Vc[1]
         vc_y = vy - tab_Vc[2]
         vc_z = vz - tab_Vc[3]
 
-        Ec = 0.5 * mass * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
+        Ec = 0.5 * m * (vc_x^2 + vc_y^2 + vc_z^2) + Uint
 
         if (Ec < 0.0)
             x_c = x - tab_Rc[1]
@@ -178,6 +179,7 @@ function get_rt_tabr(namefile::String)
             z_c = z - tab_Rc[3]
 
             tabr[index] = sqrt(x_c^2 + y_c^2 + z_c^2)
+            tabm[index] = m
 
             index += 1
         end
@@ -188,23 +190,24 @@ function get_rt_tabr(namefile::String)
 
     rt = tabr[n_bound]
 
-    return rt, tabr, tab_Rc, tab_Vc
+    return rt, tabr, tabm, tab_Rc, tab_Vc
 
 end
 
-function get_tabpsi_tabM(tabr::Array{Float64})
+function get_tabpsi_tabM(tabr::Array{Float64}, tabm::Array{Float64})
 
     nbound = length(tabr)
+    mtot = sum(tabm)
     
     tabM = zeros(Float64, nbound)
     tabpsi = zeros(Float64, nbound)
 
-    tabM[nbound] = _Mtot * nbound/Npart
+    tabM[nbound] = mtot
     tabpsi[nbound] = -_G*tabM[nbound]/tabr[nbound]
 
     for i=nbound-1:-1:1
 
-        tabM[i] = tabM[i+1] - mass 
+        tabM[i] = tabM[i+1] - tabm[i+1] 
         tabpsi[i] = tabpsi[i+1] - _G * tabM[i] * (1.0/tabr[i] - 1.0/tabr[i+1])
 
     end
@@ -352,8 +355,8 @@ function compute_tE_snapshot(namefile)
 
     # namefile = path_data*"snapshots_"*srun_data*"/time_0.0.txt"
 
-    rt, tabr, tab_Rc, tab_Vc = get_rt_tabr(namefile)
-    tabpsi, tabM = get_tabpsi_tabM(tabr)
+    rt, tabr, tabm, tab_Rc, tab_Vc = get_rt_tabr(namefile)
+    tabpsi, tabM = get_tabpsi_tabM(tabr,tabm)
     nbound = length(tabr)
 
     nbx = 500
@@ -401,13 +404,13 @@ function compute_tE_snapshot(namefile)
     Threads.@threads for i=1:Npart 
         tid = Threads.threadid()
 
-        x, y, z, vx, vy, vz, Uint, Uc = data_stars[i, :]
+        x, y, z, vx, vy, vz, m, Uint, Uc = data_stars[i, :]
         x = datax[i]
         y = datay[i]
 
         v2 = (vx-VXc)^2 + (vy-VYc)^2
 
-        Ec = 0.5 * mass * v2 + Uint
+        Ec = 0.5 * m * v2 + Uint
 
         if (Ec < 0.0)
             EJ_i = 0.5*v2 + psi_eff(x, y, tabr, tabpsi) - psiEff4
@@ -481,5 +484,5 @@ end
 
 compute_tE()
 
-# compute_Lagrange_points()
+
 
