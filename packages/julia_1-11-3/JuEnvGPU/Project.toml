@@ -1,0 +1,22 @@
+name = "JuEnvGPU"
+uuid = "95f4c5b5-68ad-4682-9e4b-5b3776bfb466"
+authors = ["kertep "]
+version = "0.1.0"
+
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+
+[compat]
+ArgParse = "1.2.0"
+CSV = "0.10.15"
+CUDA = "5.6.1"
+DataFrames = "1.7.0"
+Dates = "1.11.0"
+DelimitedFiles = "1.9.1"
+SpecialFunctions = "2.5.0"

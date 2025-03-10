@@ -1,4 +1,5 @@
-using Pkg; Pkg.activate("../../../packages/julia_1-9-3/JuEnvGPU")
+# using Pkg; Pkg.activate("../../../packages/julia_1-9-3/JuEnvGPU")
+using Pkg; Pkg.activate("../../../packages/julia_1-11-3/JuEnvGPU")
 
 println("Nb threads = ", Threads.nthreads())
 

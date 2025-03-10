@@ -9,10 +9,10 @@
 #SBATCH --mail-user=<your email>
 
 module purge
-module load julia/1.9.3
-module load cuda/11.7
-module load hdf5/1.10.7-intel
-module load inteloneapi/2021.2
+module load julia/1.11.3
+module load cuda/12.8 
+module load hdf5/1.14.6-mpi-intel
+module load inteloneapi/2025.0.1
 
 NBTHREADSGPU=128
 

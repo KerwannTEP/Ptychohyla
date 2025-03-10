@@ -13,7 +13,9 @@ using LaTeXStrings
 
 # z = 0
 
-const run_data = 63876627659181 # single mass
+const run_data = 63876778223743 # single mass
+# const run_data = 63876627199217 # multi mass 1/2
+# const run_data = 63876698124218 # multi mass 1/5
 const srun_data = string(run_data)
 
 const path_to_script = @__DIR__
@@ -477,7 +479,7 @@ function compute_tE()
     readline()
 
     mkpath(path_data*"plot/")
-    namefile_pdf = path_data*"plot/cluster_"*srun*"_tilde_E.pdf"
+    namefile_pdf = path_data*"plot/cluster_"*srun_data*"_tilde_E.pdf"
     savefig(plt, namefile_pdf)
 
 end

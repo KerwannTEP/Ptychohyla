@@ -22,11 +22,11 @@ tabargs = ArgParseSettings()
     "--Rv_cluster"
     help = "Virial radius of the Plummer cluster (in kpc)"
     arg_type = Float64
-    default = 0.01226969736888114 #0.012280754430794917
+    default = 0.012280754430794917
     "--run"
     help = "Run id"
     arg_type = Int64
-    default = 63876627199217 #63876627659181
+    default = 63876778223743
     "--N"
     help = "Number for particles"
     arg_type = Int64
@@ -55,6 +55,8 @@ const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr #
 
 const mass_avg = 1.0/Npart
 const nb_neigh = 10
+
+const R_HU_in_pc = R_HU_in_kpc * 1000.0
 
 function get_data()
 
@@ -88,7 +90,7 @@ function get_data()
 
     tab_IOM = zeros(Float64, nsnap, 10) # time, E_tot, Lx, Ly, Lz, nb_unbound, E_wrt_cluster, Lx_cluster, Ly_cluster, Lz_cluster
     tab_lag = zeros(Float64, nsnap, 5) # 1% 10% 20% 50% 90% 
-    tab_nc = zeros(Float64, nsnap) # Central density
+    tab_rhoc = zeros(Float64, nsnap) # Central density
 
     for isnap=1:nsnap
 
@@ -408,42 +410,55 @@ function get_data()
         # tab_lag[isnap, 4] = tabr[index_50]
         # tab_lag[isnap, 5] = tabr[index_90]
 
-        index_01 = floor(Int64, n_bound * 0.01)
+        # index_01 = floor(Int64, n_bound * 0.01)
+        M_01 = 0.01 * Mbound
         r_01 = tab_lag[isnap, 1]
-        tab_nc[isnap] = index_01/(4.0/3.0*pi*r_01^3) # Number/Volume
+        tab_rhoc[isnap] = M_01/(4.0/3.0*pi*r_01^3) # Number/Volume
         
 
     end
 
 
-    return tab_IOM, tab_lag, tab_nc
+    return tab_IOM, tab_lag, tab_rhoc
 
 end
 
 function plot_data!()
 
-    tab_IOM, tab_lag, tab_nc = get_data()
-    datat = tab_IOM[:, 1]  .* T_HU_in_Myr
+    tab_IOM, tab_lag, tab_rhoc = get_data()
+    datat = tab_IOM[:, 1]
     dataE = tab_IOM[:, 2]
     dataLx = tab_IOM[:, 3]
     dataLy = tab_IOM[:, 4]
     dataLz = tab_IOM[:, 5]
     dataUnbound = tab_IOM[:, 6]
 
+    rh = tab_lag[1, 4] # Half-mass radius at t=0 
+    Trh = 0.138 * rh^(3/2) * Npart/log(0.11*Npart)
+
+    println("Trh [HU] = ", Trh)
+
     namefile_hf5 = path_data*"iom_cluster_"*srun*".hf5"
     file = h5open(namefile_hf5, "w")
 
-    write(file, "data_time", datat)
+    write(file, "data_time_HU", datat)
+    write(file, "data_time_Myr", datat .* T_HU_in_Myr)
     write(file, "data_Etot", dataE)
     write(file, "data_Lx", dataLx)
     write(file, "data_Ly", dataLy)
     write(file, "data_Lz", dataLz)
     write(file, "data_unbound_frac", dataUnbound ./ Npart)
 
-    write(file, "data_E_wrt_cluster", tab_IOM[:, 7])
-    write(file, "data_Lx_wrt_cluster", tab_IOM[:, 8])
-    write(file, "data_Ly_wrt_cluster", tab_IOM[:, 9])
-    write(file, "data_Lz_wrt_cluster", tab_IOM[:, 10])
+    write(file, "data_E_wrt_cluster_HU", tab_IOM[:, 7])
+    write(file, "data_Lx_wrt_cluster_HU", tab_IOM[:, 8])
+    write(file, "data_Ly_wrt_cluster_HU", tab_IOM[:, 9])
+    write(file, "data_Lz_wrt_cluster_HU", tab_IOM[:, 10])
+
+    write(file, "data_lagrange_rad_01_pc", tab_lag[:, 1].*R_HU_in_pc)
+    write(file, "data_lagrange_rad_10_pc", tab_lag[:, 2].*R_HU_in_pc)
+    write(file, "data_lagrange_rad_20_pc", tab_lag[:, 3].*R_HU_in_pc)
+    write(file, "data_lagrange_rad_50_pc", tab_lag[:, 4].*R_HU_in_pc)
+    write(file, "data_lagrange_rad_90_pc", tab_lag[:, 5].*R_HU_in_pc)
 
     write(file, "Npart", Npart)
     write(file, "kpc_per_HU", R_HU_in_kpc)
@@ -451,22 +466,56 @@ function plot_data!()
     write(file, "Msun_per_HU", M_HU_in_Msun)
 
     write(file, "Myr_per_HU", T_HU_in_Myr)
+    write(file, "Trh_HU", Trh)
 
     close(file)
 
 
+    # https://stackoverflow.com/questions/68511668/how-to-set-number-of-minor-tick-marks-for-only-one-but-not-both-the-axes
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+
     # Energy
     n = length(dataE)
     dataFracE = abs.(1.0 .- dataE[2:n] ./ dataE[1])
+    minE = 10.0^floor(Int64, max(log10(minimum(dataFracE)), -16))
+    maxE = 10.0^(floor(Int64, log10(maximum(dataFracE)))+1)
 
-    plt = plot(datat[2:n], [dataFracE], 
+    plt = plot(datat[2:n] .* T_HU_in_Myr, [dataFracE], 
         labels=:false, 
         xlabel="Time [Myr]", 
         ylabel="Fractional energy", 
         yaxis=:log10,
-        yticks=10.0 .^ (-15:1:0),
-        xlims=(0, datat[n]),
+        xticks=0:500:5000,
+        xminorticks=5,
+        yticks=10.0 .^ (-20:1:2),
+        yminorticks=10,
+        xlims=(0, datat[n] .* T_HU_in_Myr),
+        ylims=(minE, maxE),
         frame=:box)
+
+    # Workaround for x ticks on top
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twinx(plt),
+        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xticks=0:500:5000,
+        xminorticks=5,
+
+        yaxis=:log10,
+        ylims=(minE, maxE),
+        yticks=10.0 .^ (-20:1:2),
+        yminorticks=10)
+
+    # Workaround for y ticks on the right
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twiny(plt), 
+        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xticks=0:500:5000,
+        xminorticks=5,
+
+        yaxis=:log10,
+        ylims=(minE, maxE),
+        yticks=10.0 .^ (-20:1:2),
+        yminorticks=10)
 
     display(plt)
     readline()
@@ -479,14 +528,30 @@ function plot_data!()
     # Angular momentum
 
     # x y
-    plt = plot(datat, [dataLx dataLy], 
+    plt = plot(datat .* T_HU_in_Myr, [dataLx dataLy], 
         labels=[L"L_x" L"L_y"], 
         xlabel="Time [Myr]", 
         ylabel="Angular momentum", 
+        xticks=0:500:5000,
+        xminorticks=5,
         # yaxis=:log10,
         # yticks=10.0 .^ (-15:1:0),
-        xlims=(0, datat[n]),
+        xlims=(0, datat[n] .* T_HU_in_Myr),
         frame=:box)
+
+    # # Workaround for x ticks on top
+    # # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    # plot!(twinx(plt),
+    #     xlims=(0, datat[n] .* T_HU_in_Myr),
+    #     xticks=0:500:5000,
+    #     xminorticks=5)
+
+    # # Workaround for y ticks on the right
+    # # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    # plot!(twiny(plt), 
+    #     xlims=(0, datat[n] .* T_HU_in_Myr),
+    #     xticks=0:500:5000,
+    #     xminorticks=5)
 
     display(plt)
     readline()
@@ -496,14 +561,30 @@ function plot_data!()
     savefig(plt, namefile_pdf)
 
     # z 
-    plt = plot(datat, [dataLz], 
+    plt = plot(datat .* T_HU_in_Myr, [dataLz], 
         label=L"L_z", 
         xlabel="Time [Myr]", 
         ylabel="Angular momentum", 
+        xticks=0:500:5000,
+        xminorticks=5,
         # yaxis=:log10,
         # yticks=10.0 .^ (-15:1:0),
-        xlims=(0, datat[n]),
+        xlims=(0, datat[n] .* T_HU_in_Myr),
         frame=:box)
+
+    # # Workaround for x ticks on top
+    # # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    # plot!(twinx(plt),
+    #     xlims=(0, datat[n] .* T_HU_in_Myr),
+    #     xticks=0:500:5000,
+    #     xminorticks=5)
+
+    # # Workaround for y ticks on the right
+    # # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    # plot!(twiny(plt), 
+    #     xlims=(0, datat[n] .* T_HU_in_Myr),
+    #     xticks=0:500:5000,
+    #     xminorticks=5)
 
     display(plt)
     readline()
@@ -514,15 +595,46 @@ function plot_data!()
 
     # Unbound particles
 
-    plt = plot(datat[1:n], [dataUnbound[1:n] ./ Npart .* 100], 
+    minu = 0.0
+
+    maxu = min(100.0, 10.0*(1.0+floor(Int64, maximum(dataUnbound./ Npart .* 100)/10)))
+
+
+    plt = plot(datat[1:n] .* T_HU_in_Myr, [dataUnbound[1:n] ./ Npart .* 100], 
         labels=:false, 
         xlabel="Time [Myr]", 
         ylabel="Fraction of unbound stars [%]", 
-        xlims=(0, datat[n]),
+        xlims=(0, datat[n] .* T_HU_in_Myr),
         # aspect_ratio=1,
-        xticks=0:250:5000,
-        yticks=0:5:100,
+        # xticks=0:250:5000,
+        xticks=0:500:5000,
+        xminorticks=5,
+        ylims=(minu, maxu),
+        yticks=0:10:100,
+        yminorticks=5,
         frame=:box)
+
+    # Workaround for x ticks on top
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twinx(plt),
+        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xticks=0:500:5000,
+        xminorticks=5,
+
+        ylims=(minu, maxu),
+        yticks=0:10:100,
+        yminorticks=5)
+
+    # Workaround for y ticks on the right
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twiny(plt), 
+        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xticks=0:500:5000,
+        xminorticks=5,
+
+        ylims=(minu, maxu),
+        yticks=0:10:100,
+        yminorticks=5)
 
     display(plt)
     readline()
@@ -534,26 +646,64 @@ function plot_data!()
     
 
     # Lagrange radii
-    rh = tab_lag[1, 4] # Half-mass radius at t=0
-    Trh = 0.138 * rh^(3/2) * Npart/log(0.11*Npart)
+    
+    minl = 10.0^floor(Int64, max(log10(minimum(tab_lag[:, 1].*R_HU_in_pc)), -16))
+    maxl = 10.0^(floor(Int64, log10(maximum(tab_lag[:, 5].*R_HU_in_pc)))+1)
 
-
-    plt = plot(datat[1:n] ./ Trh, [tab_lag[:, 1] tab_lag[:, 2] tab_lag[:, 3] tab_lag[:, 4] tab_lag[:, 5]], 
+    plt = plot(datat[1:n] ./ Trh, [tab_lag[:, 1].*R_HU_in_pc tab_lag[:, 2].*R_HU_in_pc tab_lag[:, 3].*R_HU_in_pc tab_lag[:, 4].*R_HU_in_pc tab_lag[:, 5].*R_HU_in_pc], 
+    # plt = plot(datat[1:n] .* T_HU_in_Myr, [tab_lag[:, 1].*R_HU_in_pc tab_lag[:, 2].*R_HU_in_pc tab_lag[:, 3].*R_HU_in_pc tab_lag[:, 4].*R_HU_in_pc tab_lag[:, 5].*R_HU_in_pc], 
         labels=[L"r_{0.01}" L"r_{0.10}" L"r_{0.20}" L"r_{0.50}" L"r_{0.90}"], 
         xlabel="Time "*L"[T_{\mathrm{rh}}]", 
-        ylabel="Lagrange radii", 
+        # xlabel="Time [Myr]", 
+        ylabel="Lagrange radii [pc]", 
         yaxis=:log10,
-        ylims=(0.01, 10.0),
+        # ylims=(0.001, 100.0),
+        # ylims=(10.0^(-2.0), 10.0^(2.0)),
+        ylims=(minl, maxl),
+        # xlims=(0, datat[n] .* T_HU_in_Myr),
         xlims=(0, datat[n]/ Trh),
         color=[:blue :orange :green :purple :red],
         # aspect_ratio=1,
-        xticks=0:5:25,
-        yticks=10.0 .^ (-2:1:1),
+        xticks=0:2:25,
+        xminorticks=4,
+        # xticks=0:250:5000,
+        yticks=10.0 .^ (-4:1:3),
+        yminorticks=10,
+        legend=:bottomleft,
         frame=:box)
 
+    # Workaround for x ticks on top
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twinx(plt),
+        xlims=(0, datat[n]/ Trh),
+        xticks=0:2:25,
+        xminorticks=4,
+
+        yaxis=:log10,
+        ylims=(minl, maxl),
+        yticks=10.0 .^ (-4:1:3),
+        yminorticks=10)
+
+    # Workaround for y ticks on the right
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twiny(plt), 
+        xlims=(0, datat[n]/ Trh),
+        xticks=0:2:25,
+        xminorticks=4,
+
+        yaxis=:log10,
+        ylims=(minl, maxl),
+        yticks=10.0 .^ (-4:1:3),
+        yminorticks=10)
+
+
     # Add the softening radius
-    eps_soft = 0.001
-    plot!(plt, [0, datat[n]/ Trh], [eps_soft, eps_soft], linestyle=:dash, color=:black, label=:false)#, label="Softening length")
+    eps_soft = 0.001 
+    plot!(plt, [0, datat[n]/ Trh], [eps_soft .*R_HU_in_pc, eps_soft .*R_HU_in_pc], linestyle=:dash, color=:black, label=:false)#, label="Softening length")
+
+    # Add CC time
+    tcc_trh = 16.45 # For an isolated King sphere with W0=5.0
+    plot!(plt, [tcc_trh, tcc_trh], [minl, maxl], linestyle=:dot, color=:black, label=:false)
 
     display(plt)
     readline()
@@ -562,20 +712,52 @@ function plot_data!()
     namefile_pdf = path_data*"plot/lagrange_radii_"*srun*".pdf"
     savefig(plt, namefile_pdf)
 
+    minrho = 10.0^floor(Int64, max(log10(minimum(tab_rhoc)), -16))
+    maxrho = 10.0^(floor(Int64, log10(maximum(tab_rhoc)))+1)
 
     # Central density n_c(0)
-    plt = plot(datat[1:n] ./ Trh, [tab_nc], 
+    plt = plot(datat[1:n] ./ Trh, [tab_rhoc], 
+    # plt = plot(datat[1:n] .* T_HU_in_Myr, [tab_rhoc], 
         labels=:false, 
         xlabel="Time "*L"[T_{\mathrm{rh}}]", 
-        ylabel="Central density "*L"n_c"*" [HU]", 
+        # xlabel="Time [Myr]", 
+        ylabel="Central density "*L"\rho_c"*" [HU]", 
         yaxis=:log10,
-        # ylims=(0.01, 10.0),
-        xlims=(0, datat[n]./ Trh),
+        # xlims=(0, datat[n] .* T_HU_in_Myr),
+        xlims=(0, datat[n]/ Trh),
         color=:black,
         # aspect_ratio=1,
-        xticks=0:5:25,
-        # yticks=10.0 .^ (-2:1:1),
+        xticks=0:2:25,
+        xminorticks=4,
+        # xticks=0:250:5000,
+        yticks=10.0 .^ (-2:1:10),
+        yminorticks=10,
+        ylims=(minrho, maxrho),
         frame=:box)
+
+    # Workaround for x ticks on top
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twinx(plt),
+        xlims=(0, datat[n]/ Trh),
+        xticks=0:2:25,
+        xminorticks=4,
+
+        yaxis=:log10,
+        ylims=(minrho, maxrho),
+        yticks=10.0 .^ (-2:1:10),
+        yminorticks=10)
+
+    # Workaround for y ticks on the right
+    # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
+    plot!(twiny(plt), 
+        xlims=(0, datat[n]/ Trh),
+        xticks=0:2:25,
+        xminorticks=4,
+
+        yaxis=:log10,
+        ylims=(minrho, maxrho),
+        yticks=10.0 .^ (-2:1:10),
+        yminorticks=10)
 
     display(plt)
     readline()
