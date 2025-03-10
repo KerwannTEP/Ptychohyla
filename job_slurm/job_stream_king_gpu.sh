@@ -8,6 +8,8 @@
 #SBATCH --mail-type=TIME_LIMIT,END,FAIL
 #SBATCH --mail-user=<your email>
 
+# Use whichever versions are compatible with your GPU driver
+# Incompatible and not up-to-date versions may cause GPU performance to randomly drop to 0%, and effectively bringing the code to a stop
 module purge
 module load julia/1.11.3
 module load cuda/12.8 

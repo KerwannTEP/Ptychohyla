@@ -11,11 +11,8 @@ Install Julia by following the instructions at [https://julialang.org/downloads/
 
 To invoke Julia in the Terminal, you need to make sure that the julia command-line program is in your `PATH`. 
 
-On MacOS, we must create a link in `/usr/local/bin` (here for Julia 1.8):
+On MacOS, we may have to create a link in `/usr/local/bin`.
 
-```
-$ sudo ln -s /Applications/Julia-1.8.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia
-```
 
 ## Julia packages
 
@@ -34,7 +31,7 @@ One may create a local Julia environment by following the instructions at [https
 One can create a local environment called `LocalEnv` by following the next instructions. First, open `Julia` on the console.
 
 ```
-$ module load julia/1.8.0
+$ module load julia/1.11.3
 $ julia
 ```
 
@@ -42,7 +39,7 @@ Then, open the Pkg mode and create the local environment
 
 ```
 julia> ]
-(@v1.8) pkg> generate LocalEnv
+(@v1.11) pkg> generate LocalEnv
 ```
 
 
@@ -52,7 +49,7 @@ First, go to the folder containing `LocalEnv/` and open Julia. Then, add the pac
 
 ```
 julia> ]
-(@v1.8) pkg> activate LocalEnv
+(@v1.11) pkg> activate LocalEnv
 (LocalEnv) pkg> add SpecialFunctions
 ```
 
@@ -89,7 +86,7 @@ Snapshots are saved in the `data/snapshot` folder.
 
 ## Running the GPU version
 
-A GPU-accelerated version of `Ptychohyla`, using the `CUDA` library, can be found in the folder `code/src_gpu`. Should one have access to a computing cluster using SLURM, one may adapt the script given in the folder `job_slurm` to perform a run
+A GPU-accelerated version of `Ptychohyla`, using the `CUDA` library, can be found in the folder `code/src_gpu`. Should one have access to a computing cluster using SLURM, one may adapt the script given in the folder `job_slurm` (driver's version, host parameters, run parameters, etc ...) to perform a run
 
 ```
 $ sbatch job_stream_king.sh
