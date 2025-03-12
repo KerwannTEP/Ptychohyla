@@ -480,25 +480,25 @@ function plot_data!()
     minE = 10.0^floor(Int64, max(log10(minimum(dataFracE)), -16))
     maxE = 10.0^(floor(Int64, log10(maximum(dataFracE)))+1)
 
-    plt = plot(datat[2:n] .* T_HU_in_Myr, [dataFracE], 
+    plt = plot(datat[2:n] ./ Trh, [dataFracE], 
         labels=:false, 
-        xlabel="Time [Myr]", 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
         ylabel="Fractional energy", 
         yaxis=:log10,
-        xticks=0:500:5000,
-        xminorticks=5,
+        xticks=0:2:50,
+        xminorticks=4,
         yticks=10.0 .^ (-20:1:2),
         yminorticks=10,
-        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xlims=(0, datat[n]/Trh),
         ylims=(minE, maxE),
         frame=:box)
 
     # Workaround for x ticks on top
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twinx(plt),
-        xlims=(0, datat[n] .* T_HU_in_Myr),
-        xticks=0:500:5000,
-        xminorticks=5,
+        xlims=(0, datat[n]/Trh),
+        xticks=0:2:50,
+        xminorticks=4,
 
         yaxis=:log10,
         ylims=(minE, maxE),
@@ -508,9 +508,9 @@ function plot_data!()
     # Workaround for y ticks on the right
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twiny(plt), 
-        xlims=(0, datat[n] .* T_HU_in_Myr),
-        xticks=0:500:5000,
-        xminorticks=5,
+        xlims=(0, datat[n]/Trh),
+        xticks=0:2:50,
+        xminorticks=4,
 
         yaxis=:log10,
         ylims=(minE, maxE),
@@ -528,15 +528,15 @@ function plot_data!()
     # Angular momentum
 
     # x y
-    plt = plot(datat .* T_HU_in_Myr, [dataLx dataLy], 
+    plt = plot(datat ./Trh, [dataLx dataLy], 
         labels=[L"L_x" L"L_y"], 
-        xlabel="Time [Myr]", 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
         ylabel="Angular momentum", 
-        xticks=0:500:5000,
-        xminorticks=5,
+        xticks=0:2:50,
+        xminorticks=4,
         # yaxis=:log10,
         # yticks=10.0 .^ (-15:1:0),
-        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xlims=(0, datat[n]/Trh),
         frame=:box)
 
     # # Workaround for x ticks on top
@@ -561,15 +561,15 @@ function plot_data!()
     savefig(plt, namefile_pdf)
 
     # z 
-    plt = plot(datat .* T_HU_in_Myr, [dataLz], 
+    plt = plot(datat ./ Trh, [dataLz], 
         label=L"L_z", 
-        xlabel="Time [Myr]", 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
         ylabel="Angular momentum", 
-        xticks=0:500:5000,
-        xminorticks=5,
+        xticks=0:2:50,
+        xminorticks=4,
         # yaxis=:log10,
         # yticks=10.0 .^ (-15:1:0),
-        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xlims=(0, datat[n]/Trh),
         frame=:box)
 
     # # Workaround for x ticks on top
@@ -600,15 +600,15 @@ function plot_data!()
     maxu = min(100.0, 10.0*(1.0+floor(Int64, maximum(dataUnbound./ Npart .* 100)/10)))
 
 
-    plt = plot(datat[1:n] .* T_HU_in_Myr, [dataUnbound[1:n] ./ Npart .* 100], 
+    plt = plot(datat[1:n] ./Trh, [dataUnbound[1:n] ./ Npart .* 100], 
         labels=:false, 
-        xlabel="Time [Myr]", 
+        xlabel="Time "*L"[T_{\mathrm{rh}}]", 
         ylabel="Fraction of unbound stars [%]", 
-        xlims=(0, datat[n] .* T_HU_in_Myr),
+        xlims=(0, datat[n]/Trh),
         # aspect_ratio=1,
         # xticks=0:250:5000,
-        xticks=0:500:5000,
-        xminorticks=5,
+        xticks=0:2:50,
+        xminorticks=4,
         ylims=(minu, maxu),
         yticks=0:10:100,
         yminorticks=5,
@@ -617,9 +617,9 @@ function plot_data!()
     # Workaround for x ticks on top
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twinx(plt),
-        xlims=(0, datat[n] .* T_HU_in_Myr),
-        xticks=0:500:5000,
-        xminorticks=5,
+        xlims=(0, datat[n]/Trh),
+        xticks=0:2:50,
+        xminorticks=4,
 
         ylims=(minu, maxu),
         yticks=0:10:100,
@@ -628,9 +628,9 @@ function plot_data!()
     # Workaround for y ticks on the right
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twiny(plt), 
-        xlims=(0, datat[n] .* T_HU_in_Myr),
-        xticks=0:500:5000,
-        xminorticks=5,
+        xlims=(0, datat[n] /Trh),
+        xticks=0:2:50,
+        xminorticks=4,
 
         ylims=(minu, maxu),
         yticks=0:10:100,
@@ -664,7 +664,7 @@ function plot_data!()
         xlims=(0, datat[n]/ Trh),
         color=[:blue :orange :green :purple :red],
         # aspect_ratio=1,
-        xticks=0:2:25,
+        xticks=0:2:50,
         xminorticks=4,
         # xticks=0:250:5000,
         yticks=10.0 .^ (-4:1:3),
@@ -676,7 +676,7 @@ function plot_data!()
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twinx(plt),
         xlims=(0, datat[n]/ Trh),
-        xticks=0:2:25,
+        xticks=0:2:50,
         xminorticks=4,
 
         yaxis=:log10,
@@ -688,7 +688,7 @@ function plot_data!()
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twiny(plt), 
         xlims=(0, datat[n]/ Trh),
-        xticks=0:2:25,
+        xticks=0:2:50,
         xminorticks=4,
 
         yaxis=:log10,
@@ -727,7 +727,7 @@ function plot_data!()
         xlims=(0, datat[n]/ Trh),
         color=:black,
         # aspect_ratio=1,
-        xticks=0:2:25,
+        xticks=0:2:50,
         xminorticks=4,
         # xticks=0:250:5000,
         yticks=10.0 .^ (-2:1:10),
@@ -739,7 +739,7 @@ function plot_data!()
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twinx(plt),
         xlims=(0, datat[n]/ Trh),
-        xticks=0:2:25,
+        xticks=0:2:50,
         xminorticks=4,
 
         yaxis=:log10,
@@ -751,7 +751,7 @@ function plot_data!()
     # https://discourse.julialang.org/t/plot-ticks-at-both-top-and-bottom-axis/9550/8
     plot!(twiny(plt), 
         xlims=(0, datat[n]/ Trh),
-        xticks=0:2:25,
+        xticks=0:2:50,
         xminorticks=4,
 
         yaxis=:log10,

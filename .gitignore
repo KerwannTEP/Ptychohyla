@@ -9,4 +9,4 @@ data/snapshots_*
 data/*.txt
 data/*.hf5
 code/script/old
-
+nbody6++gpu/
