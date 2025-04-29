@@ -22,21 +22,21 @@ NBTHREADSGPU=128
 # King IC
 N=10000
 MCLUSTER=100000 # Total mass in solar masses
-RH=0.01 # Half-mass radius in kpc
-DIST=4.0 # Distance of the cluster to the host potential's centre (in kpc)
+RH=0.020 # Half-mass radius in kpc
+DIST=20.0 # Distance of the cluster to the host potential's centre (in kpc)
 
 # Dark halo
 C=15.3 # Concentration parameter of the NFW halo profile
 RS=16.0 # Scale radius of the NFW halo profile
-MHALO=800000000000 # "Mass of the dark halo, M200, in solar masses
+MHALO=809240100000 # "Mass of the dark halo, M200, in solar masses
 
 # Bulge
-MBULGE=5000000000
+MBULGE=4501370000
 ALPHA=-1.8
 RC=1.9
 
 # Disk
-MDISK=68000000000
+MDISK=68193900000
 ADISK=3.0
 BDISK=0.280
 

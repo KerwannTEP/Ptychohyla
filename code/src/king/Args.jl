@@ -39,12 +39,12 @@ tabargs = ArgParseSettings()
     "--Mvir_halo"
     help = "Virial massass of the dark halo (NFW), (in solar masses)"
     arg_type = Float64
-    default = 0.8e+12
+    default = 8.092401e+11
 
     "--M_bulge"
     help = "Mass of the bulge (in solar masses)"
     arg_type = Float64
-    default = 0.5e+10
+    default = 4.501370e+9
     "--alpha_bulge"
     help = "Power law index of the bulge"
     arg_type = Float64
@@ -57,7 +57,7 @@ tabargs = ArgParseSettings()
     "--M_disk"
     help = "Mass of the Miyamoto-Nagai disk (in solar masses)"
     arg_type = Float64
-    default = 6.8e+10
+    default = 6.819390e+10
     "--a_disk"
     help = "Scale length of the Miyamoto-Nagai disk (in kpc)"
     arg_type = Float64
