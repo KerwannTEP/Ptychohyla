@@ -2,20 +2,24 @@ using DelimitedFiles
 using CSV 
 using DataFrames
 
+include("../Host.jl")
+
 ############################################################################################################################################
 #  Initialization
 ############################################################################################################################################
 
 function initialize_stars!(tab_stars::Array{Float64})
 
-    # Load King sphere in Henon units
-    if (!HAS_MULTI_MASS) 
-        # Single mass
-        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
-    else 
-        # Multi-mass (half of mass m1, half of mass m2=2*m1)
-        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
-    end
+    # # Load King sphere in Henon units
+    # if (!HAS_MULTI_MASS) 
+    #     # Single mass
+    #     namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    # else 
+    #     # Multi-mass (half of mass m1, half of mass m2=2*m1)
+    #     namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
+    # end
+
+    namefile = file_IC
     
     df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
@@ -28,7 +32,7 @@ function initialize_stars!(tab_stars::Array{Float64})
     datavz = df[:, 11]
 
 
-    vcirc = circular_velocity(d_host)
+    vcirc = host.circular_velocity(d_host)
     println("Vc [HU] = ", vcirc)
     println("Vc [km/s] = ", vcirc * V_HU_in_km_s)
 
