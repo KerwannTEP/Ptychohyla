@@ -6,7 +6,7 @@ function initialize_stars!(tab_stars::Array{Float64})
     namefile = path_dir*"data/IC/plummer_sphere_n_"*string(Npart)*"_q_"*string(q)*".txt"
     data = readdlm(namefile, header=false)
 
-    vcirc = circular_velocity(d_host)
+    vcirc = host.circular_velocity(d_host)
     println("Vc = ", vcirc)
     println("Vc [km/s] = ", vcirc * V_HU_in_km_s)
 
