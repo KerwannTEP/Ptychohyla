@@ -50,7 +50,7 @@ tabargs = ArgParseSettings()
     "--host_type"
     help = "Type of host potential"
     arg_type = String
-    default = "MW2014"
+    default = "MW2022"
 
     "--custom_IC"
     help = "Use the custom IC file for the cluster's initial location"

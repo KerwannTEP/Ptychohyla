@@ -3,7 +3,7 @@ using DelimitedFiles
 
 # include("../king/Constants.jl")
 
-const params_MW2014 = readdlm(path_dir * "code/src/host/parameters/MW2014.txt"; header=false)
+const params_MW2014 = readdlm(path_dir * "code/src_gpu/host/parameters/MW2014.txt"; header=false)
 
 
 # Dark halo

@@ -2,7 +2,7 @@ using DelimitedFiles
 
 # include("../king/Constants.jl")
 
-const params_MW2022 = readdlm(path_dir * "code/src/host/parameters/MW2022.txt", header=false)
+const params_MW2022 = readdlm(path_dir * "code/src_gpu/host/parameters/MW2022.txt", header=false)
 
 # Nucleus
 const a_nucleus_2022 = params_MW2022[1,1]/(R_HU_in_kpc)

@@ -65,7 +65,7 @@ function initialize_stars!(tab_stars::Array{Float64})
 
     else
 
-        vcirc = circular_velocity(d_host)
+        vcirc = host.circular_velocity(d_host)
         println("Vc [HU] = ", vcirc)
         println("Vc [km/s] = ", vcirc * V_HU_in_km_s)
 
