@@ -52,6 +52,11 @@ tabargs = ArgParseSettings()
     arg_type = String
     default = "MW2014"
 
+    "--custom_IC"
+    help = "Use the custom IC file for the cluster's initial location"
+    arg_type = Bool
+    default = true
+
     "--folder_output"
     help = "Output folder of the data"
     arg_type = String
@@ -85,6 +90,8 @@ const eps = parsed_args["eps"]
 
 const HAS_HOST = parsed_args["host"]
 const HOST_TYPE = parsed_args["host_type"]
+
+const CUSTOM_IC = parsed_args["custom_IC"]
 
 const folder_output = parsed_args["folder_output"]
 const file_IC = parsed_args["file_IC"]
