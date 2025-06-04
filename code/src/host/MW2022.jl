@@ -1,8 +1,8 @@
 using DelimitedFiles
 
-include("../king/Constants.jl")
+# include("../king/Constants.jl")
 
-const params_MW2022 = readdlm("parameters/MW2022.txt", header=false)
+const params_MW2022 = readdlm(path_dir * "code/src/host/parameters/MW2022.txt", header=false)
 
 # Nucleus
 const a_nucleus_2022 = params_MW2022[1,1]/(R_HU_in_kpc)
@@ -69,6 +69,8 @@ end
 
 function acc_nucleus_2022(x::Float64, y::Float64, z::Float64)
 
+    r = sqrt(x*x + y*y + z*z)
+
     ar = -dpsidr_nucleus_2022(r)
 
     ax = ar * x/r
@@ -94,6 +96,8 @@ function dpsidr_bulge_2022(r::Float64)
 end
 
 function acc_bulge_2022(x::Float64, y::Float64, z::Float64)
+
+    r = sqrt(x*x + y*y + z*z)
 
     ar = -dpsidr_bulge_2022(r)
 
@@ -194,7 +198,9 @@ function dpsidr_halo_2022(r::Float64)
 
 end
 
-function acc_halo_2022(r::Float64)
+function acc_halo_2022(x::Float64, y::Float64, z::Float64)
+
+    r = sqrt(x*x + y*y + z*z)
 
     ar = -dpsidr_halo_2022(r)
 

@@ -1,15 +1,15 @@
 using SpecialFunctions
 using DelimitedFiles
 
-include("../king/Constants.jl")
+# include("../king/Constants.jl")
 
-const params_MW2014 = readdlm("parameters/MW2014.txt", header=false)
+const params_MW2014 = readdlm(path_dir * "code/src/host/parameters/MW2014.txt"; header=false)
 
 
 # Dark halo
 const Mvir_2014 = params_MW2014[1,3]/(M_HU_in_Msun)
 const Rs_2014 = params_MW2014[1,2]/(R_HU_in_kpc)
-const g_c_2014 = log(1+params_MW2014[1,1]) - c/(1.0+params_MW2014[1,1])
+const g_c_2014 = log(1+params_MW2014[1,1]) - params_MW2014[1,1]/(1.0+params_MW2014[1,1])
 
 # Bulge
 const M_bulge_2014 = params_MW2014[2,3]/(M_HU_in_Msun)
@@ -37,7 +37,7 @@ const b_disk_2014 = params_MW2014[3,2]/(R_HU_in_kpc)
 
 function gamma_low_sx(xr)
 
-    return gamma_s_2014 - gamma(s_bulge, xr)
+    return gamma_s_2014 - gamma(s_bulge_2014, xr)
 
 end
 
@@ -68,12 +68,12 @@ function psi_bulge_2014(r::Float64)
     xr = (r/rc_bulge_2014)^2
 
     # Inner potential
-    gamma_lower = gamma_s_2014 - gamma(s_bulge, xr)
+    gamma_lower = gamma_s_2014 - gamma(s_bulge_2014, xr)
     psi_inner = -_G*M_bulge_2014/r * gamma_lower/gamma_s_2014
 
     # Outer potential 
-    gamma_upper = gamma(1.0-alpha_bulg_2014/2.0, xr)
-    psi_outer = -_G*M_bulge/rc_bulge * gamma_upper/gamma_s
+    gamma_upper = gamma(1.0-alpha_bulge_2014/2.0, xr)
+    psi_outer = -_G*M_bulge_2014/rc_bulge_2014 * gamma_upper/gamma_s_2014
      
     return psi_inner + psi_outer
 
@@ -147,7 +147,7 @@ end
 
 function Menc_halo_2014(r::Float64)
 
-    return Mvir * _g(r/Rs_2014)/g_c_2014
+    return Mvir_2014 * _g(r/Rs_2014)/g_c_2014
     
 end
 
@@ -250,9 +250,9 @@ end
 # z=0
 function circular_velocity_2014(R::Float64)
 
-    dpsidR_b = dpsidr_bulge(R)
-    dpsidR_d = dpsidR_disk(R, 0.0)
-    dpsidR_h = dpsidr_halo(R)
+    dpsidR_b = dpsidr_bulge_2014(R)
+    dpsidR_d = dpsidR_disk_2014(R, 0.0)
+    dpsidR_h = dpsidr_halo_2014(R)
 
     dpsidR = dpsidR_h + dpsidR_d + dpsidR_b
 

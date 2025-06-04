@@ -59,7 +59,7 @@ tabargs = ArgParseSettings()
     "--file_IC"
     help = "Location of the IC file"
     arg_type = String
-    default = path_dir * "/../../../data/IC/chc_king_ics_n_10000.csv"
+    default = folder_dir * "/../../../data/IC/chc_king_ics_n_10000.csv"
 
     "--restart"
     help = "Is the run a restart (true or false) ?"
@@ -87,7 +87,7 @@ const HAS_HOST = parsed_args["host"]
 const HOST_TYPE = parsed_args["host_type"]
 
 const folder_output = parsed_args["folder_output"]
-const file_IC = parse_args["file_IC"]
+const file_IC = parsed_args["file_IC"]
 
 const RESTART = parsed_args["restart"]
 const id_default = parsed_args["id"]
