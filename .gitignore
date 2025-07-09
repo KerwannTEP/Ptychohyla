@@ -8,5 +8,6 @@ data/gif
 data/snapshots_*
 data/*.txt
 data/*.hf5
+data/IC/*.csv
 code/script/old
 nbody6++gpu/

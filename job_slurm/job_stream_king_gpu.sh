@@ -22,7 +22,7 @@ NBTHREADSGPU=128
 N=10000
 MCLUSTER=100000 # Total mass in solar masses
 RH=0.020 # Half-mass radius in kpc
-DIST=20.0 # Distance of the cluster to the host potential's centre (in kpc)
+DIST=15.19121074 # Distance of the cluster to the host potential's centre (in kpc)
 
 # Host
 HAS_HOST=true # Is there a host potential ? (true or false)
