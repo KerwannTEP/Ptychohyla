@@ -1,4 +1,4 @@
-function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64})
+function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, host::Host)
 
     # Compute contribution from the cluster self-gravity (GPU acceleration)
     tab_acc_Uint_int_gpu!(tab_acc, tab_Uint, tab_stars[:, 1:3], tab_stars[:, 7])
@@ -9,7 +9,7 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
         Threads.@threads for i=1:Npart 
 
             x, y, z, vx, vy, vz, m = tab_stars[i, :]
-            ax_host, ay_host, az_host = acc_host(x, y, z) 
+            ax_host, ay_host, az_host = host.acc_host(x, y, z) 
 
             tab_acc[i, 1] += ax_host
             tab_acc[i, 2] += ay_host
@@ -17,7 +17,7 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
 
             r = sqrt(x^2 + y^2 + z^2)
             R = sqrt(x^2 + y^2)
-            psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) 
+            psi_xyz = host.psi_host(R, z)
 
             tab_Uc[i] = m * psi_xyz
 
@@ -28,7 +28,7 @@ function update_tab_acc_Uint!(tab_stars::Array{Float64}, tab_acc::Array{Float64}
 
 end
 
-function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool)
+function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool, host::Host)
 
     # Integrate each star
     # N-body force (GPU) + Host potential
@@ -37,7 +37,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     # https://en.wikipedia.org/wiki/Leapfrog_integration#Algorithm
 
     if (first_timestep)
-        update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+        update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc, host)
     end
 
 
@@ -87,7 +87,7 @@ function integrate_stars_leapfrog!(index::Int64, time::Float64, tab_stars::Array
     end
 
 
-    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc, host)
 
     # v_{k+1/2} -> v_{k+1} = v_{k+1/2} + a_{k+1}*dt/2
     # a_{k+1} = F(x_{k+1})
@@ -115,7 +115,7 @@ end
 
 
 
-function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool)
+function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{Float64}, tab_acc::Array{Float64}, tab_Uint::Array{Float64}, tab_Uc::Array{Float64}, first_timestep::Bool, host::Host)
 
     w0 = - cbrt(2.0)/(2.0 - cbrt(2.0))
     w1 = 1.0/(2.0 - cbrt(2.0))
@@ -140,7 +140,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
         if !(index == 0 && (RESTART)) # If not the IC of the restart (already saved in previous run)
 
             # Compute integral of motions
-            update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+            update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc, host)
 
             write_data!(time, tab_stars, tab_Uint, tab_Uc)
         end  
@@ -162,7 +162,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     end
 
     # Kick 1
-    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc, host)
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz, m = tab_stars[i, :]
@@ -197,7 +197,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     end
 
     # Kick 2
-    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc, host)
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz, m = tab_stars[i, :]
@@ -232,7 +232,7 @@ function integrate_stars_yoshida!(index::Int64, time::Float64, tab_stars::Array{
     end
 
     # Kick 3
-    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc)
+    update_tab_acc_Uint!(tab_stars, tab_acc, tab_Uint, tab_Uc, host)
     Threads.@threads for i=1:Npart 
 
         x, y, z, vx, vy, vz, m = tab_stars[i, :]

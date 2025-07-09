@@ -37,8 +37,8 @@ function main()
     while (time < time_end)
         
 
-        # integrate_stars_leapfrog!(index, time, tab_stars, tab_acc, tab_Uint, tab_Uc, first_timestep)
-        integrate_stars_yoshida!(index, time, tab_stars, tab_acc, tab_Uint, tab_Uc, first_timestep)
+        integrate_stars_leapfrog!(index, time, tab_stars, tab_acc, tab_Uint, tab_Uc, first_timestep, host)
+        # integrate_stars_yoshida!(index, time, tab_stars, tab_acc, tab_Uint, tab_Uc, first_timestep, host)
         time += dt
         index += 1
 

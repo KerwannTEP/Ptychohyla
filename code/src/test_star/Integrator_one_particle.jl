@@ -1,4 +1,4 @@
-function integrate_one_leapfrog!(tab_stars::Array{Float64})
+function integrate_one_leapfrog!(tab_stars::Array{Float64}, host::Host)
 
     # Integrate each star
     # N-body forces + Host potential
@@ -12,7 +12,7 @@ function integrate_one_leapfrog!(tab_stars::Array{Float64})
    
 
     x, y, z, vx, vy, vz = tab_stars[:]
-    ax, ay, az = acc_host(x, y, z) 
+    ax, ay, az = host.acc_host(x, y, z) 
 
     dvx = dt/2 * ax
     dvy = dt/2 * ay
@@ -38,7 +38,7 @@ function integrate_one_leapfrog!(tab_stars::Array{Float64})
     # a_{k+1} = F(x_{k+1})
 
     x, y, z, vx, vy, vz = tab_stars[:]
-    ax, ay, az = acc_host(x, y, z) 
+    ax, ay, az = host.acc_host(x, y, z) 
 
 
     dvx = dt/2 * ax
@@ -59,7 +59,7 @@ end
 # 4th order Yoshida integrator
 # https://en.wikipedia.org/wiki/Leapfrog_integration#4th_order_Yoshida_integrator
 
-function integrate_one_yoshida!(tab_stars::Array{Float64})
+function integrate_one_yoshida!(tab_stars::Array{Float64}, host::Host)
 
     w0 = - cbrt(2.0)/(2.0 - cbrt(2.0))
     w1 = 1.0/(2.0 - cbrt(2.0))
@@ -85,7 +85,7 @@ function integrate_one_yoshida!(tab_stars::Array{Float64})
 
     # Kick 1
     x, y, z, vx, vy, vz = tab_stars[:]
-    ax, ay, az = acc_host(x, y, z) 
+    ax, ay, az = host.acc_host(x, y, z) 
 
     dvx = d1 * ax * dt 
     dvy = d1 * ay * dt 
@@ -110,7 +110,7 @@ function integrate_one_yoshida!(tab_stars::Array{Float64})
 
     # Kick 2
     x, y, z, vx, vy, vz = tab_stars[:]
-    ax, ay, az = acc_host(x, y, z) 
+    ax, ay, az = host.acc_host(x, y, z) 
 
     dvx = d2 * ax * dt 
     dvy = d2 * ay * dt 
@@ -135,7 +135,7 @@ function integrate_one_yoshida!(tab_stars::Array{Float64})
 
     # Kick 3
     x, y, z, vx, vy, vz = tab_stars[:]
-    ax, ay, az = acc_host(x, y, z) 
+    ax, ay, az = host.acc_host(x, y, z) 
 
     dvx = d3 * ax * dt 
     dvy = d3 * ay * dt 

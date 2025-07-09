@@ -94,8 +94,10 @@ function plot_data()
                 markersize=s, color=:white, 
                 # https://docs.juliaplots.org/latest/#simple-is-beautiful
                 # https://discourse.julialang.org/t/3d-plots-possible-to-change-view-point/10155/3
-                camera=(45, 5), # rotation angles of the camera
+                camera=(45, 10), # rotation angles of the camera
                 title="t = "*string(time)*" Myr")
+        
+        scatter!([0], [0], [0], label=false, color=:red)
 
     end
 

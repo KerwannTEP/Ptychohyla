@@ -26,48 +26,6 @@ tabargs = ArgParseSettings()
     arg_type = Float64
     default = 4.0e+0
 
-    
-
-    "--c"
-    help = "Halo (NFW) concentration"
-    arg_type = Float64
-    default = 15.3
-    "--Rs_host"
-    help = "Halo (NFW) scale radius (in kpc)"
-    arg_type = Float64
-    default = 16.0
-    "--Mvir_halo"
-    help = "Virial massass of the dark halo (NFW), (in solar masses)"
-    arg_type = Float64
-    default = 8.092401e+11
-
-    "--M_bulge"
-    help = "Mass of the bulge (in solar masses)"
-    arg_type = Float64
-    default = 4.501370e+9
-    "--alpha_bulge"
-    help = "Power law index of the bulge"
-    arg_type = Float64
-    default = -1.8
-    "--rc_bulge"
-    help = "Exponential cutoff radius of the bulge (in kpc)"
-    arg_type = Float64
-    default = 1.9e+0
-
-    "--M_disk"
-    help = "Mass of the Miyamoto-Nagai disk (in solar masses)"
-    arg_type = Float64
-    default = 6.819390e+10
-    "--a_disk"
-    help = "Scale length of the Miyamoto-Nagai disk (in kpc)"
-    arg_type = Float64
-    default = 3.0e+0
-    "--b_disk"
-    help = "Scale height of the Miyamoto-Nagai disk (in kpc)"
-    arg_type = Float64
-    default = 0.280e+0
-
-
     "--t_end"
     help = "Stopping time (in Henon units)"
     arg_type = Float64
@@ -89,15 +47,24 @@ tabargs = ArgParseSettings()
     help = "Do we include a host potential (true or false) ?"
     arg_type = Bool
     default = true
-    "--multi_mass"
-    help = "Use the multi-mass cluster (true or false) ?"
+    "--host_type"
+    help = "Type of host potential"
+    arg_type = String
+    default = "MW2022"
+
+    "--custom_IC"
+    help = "Use the custom IC file for the cluster's initial location"
     arg_type = Bool
-    default = false
+    default = true
 
     "--folder_output"
     help = "Output folder of the data"
     arg_type = String
     default = folder_dir  * "/../../../data/"
+    "--file_IC"
+    help = "Location of the IC file"
+    arg_type = String
+    default = folder_dir * "/../../../data/IC/chc_king_ics_n_10000.csv"
 
     "--restart"
     help = "Is the run a restart (true or false) ?"
@@ -116,29 +83,18 @@ const Mtot_Msun = parsed_args["M_cluster"]
 const Rh_kpc = parsed_args["Rh_cluster"]
 const d_kpc =  parsed_args["d_cluster"]
 
-
-const Mvir_Msun = parsed_args["Mvir_halo"]
-const Rs_kpc = parsed_args["Rs_host"]
-const c = parsed_args["c"]
-
-const M_bulge_Msun = parsed_args["M_bulge"]
-const alpha_bulge = parsed_args["alpha_bulge"]
-const rc_bulge_kpc = parsed_args["rc_bulge"]
-
-const M_disk_Msun = parsed_args["M_disk"]
-const a_disk_kpc = parsed_args["a_disk"]
-const b_disk_kpc = parsed_args["b_disk"]
-
-
 const time_end = parsed_args["t_end"]
 const dt = parsed_args["dt"]
 const N_dt = parsed_args["N_dt"]
 const eps = parsed_args["eps"]
 
 const HAS_HOST = parsed_args["host"]
-const HAS_MULTI_MASS = parsed_args["multi_mass"]
+const HOST_TYPE = parsed_args["host_type"]
+
+const CUSTOM_IC = parsed_args["custom_IC"]
 
 const folder_output = parsed_args["folder_output"]
+const file_IC = parsed_args["file_IC"]
 
 const RESTART = parsed_args["restart"]
 const id_default = parsed_args["id"]

@@ -11,14 +11,16 @@ println("Compiling CUDA...")
 
 function initialize_stars!(tab_stars::Array{Float64})
 
-    # Load King sphere in Henon units
-    if (!HAS_MULTI_MASS) 
-        # Single mass
-        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
-    else 
-        # Multi-mass (half of mass m1, half of mass m2=2*m1)
-        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
-    end
+    # # Load King sphere in Henon units
+    # if (!HAS_MULTI_MASS) 
+    #     # Single mass
+    #     namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    # else 
+    #     # Multi-mass (half of mass m1, half of mass m2=2*m1)
+    #     namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
+    # end
+
+    namefile = file_IC
 
     df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
@@ -30,20 +32,54 @@ function initialize_stars!(tab_stars::Array{Float64})
     datavy = df[:, 10]
     datavz = df[:, 11]
 
+    if (CUSTOM_IC)
 
-    vcirc = circular_velocity(d_host)
-    println("Vc [HU] = ", vcirc)
-    println("Vc [km/s] = ", vcirc * V_HU_in_km_s)
+        custom_IC = readdlm(path_dir * "job_slurm/custom_IC.txt"; header=false)
 
-    Threads.@threads for i=1:Npart 
+        println("x0  [kpc]  = ", custom_IC[1,1])
+        println("y0  [kpc]  = ", custom_IC[1,2])
+        println("z0  [kpc]  = ", custom_IC[1,3])
+        println("vx0 [km/s] = ", custom_IC[2,1])
+        println("vy0 [km/s] = ", custom_IC[2,2])
+        println("vz0 [km/s] = ", custom_IC[2,3])
 
-        tab_stars[i, 1] = d_host + datax[i] # Cluster on the x>0 x-axis
-        tab_stars[i, 2] = datay[i]
-        tab_stars[i, 3] = dataz[i]
-        tab_stars[i, 4] = datavx[i]
-        tab_stars[i, 5] = vcirc + datavy[i] # Circular velocity: cluster goes in the y-direction
-        tab_stars[i, 6] = datavz[i]
-        tab_stars[i, 7] = datam[i]
+        x0 = custom_IC[1,1] / R_HU_in_kpc  # HU
+        y0 = custom_IC[1,2] / R_HU_in_kpc  # HU
+        z0 = custom_IC[1,3] / R_HU_in_kpc  # HU
+
+        vx0 = custom_IC[2,1] / V_HU_in_km_s  # HU
+        vy0 = custom_IC[2,2] / V_HU_in_km_s  # HU
+        vz0 = custom_IC[2,3] / V_HU_in_km_s  # HU
+
+        Threads.@threads for i=1:Npart 
+
+            tab_stars[i, 1] = x0 + datax[i]
+            tab_stars[i, 2] = y0 + datay[i]
+            tab_stars[i, 3] = z0 + dataz[i]
+            tab_stars[i, 4] = vx0 + datavx[i]
+            tab_stars[i, 5] = vy0 + datavy[i]
+            tab_stars[i, 6] = vz0 + datavz[i]
+            tab_stars[i, 7] = datam[i]
+
+        end
+
+    else
+
+        vcirc = host.circular_velocity(d_host)
+        println("Vc [HU] = ", vcirc)
+        println("Vc [km/s] = ", vcirc * V_HU_in_km_s)
+
+        Threads.@threads for i=1:Npart 
+
+            tab_stars[i, 1] = d_host + datax[i] # Cluster on the x>0 x-axis
+            tab_stars[i, 2] = datay[i]
+            tab_stars[i, 3] = dataz[i]
+            tab_stars[i, 4] = datavx[i]
+            tab_stars[i, 5] = vcirc + datavy[i] # Circular velocity: cluster goes in the y-direction
+            tab_stars[i, 6] = datavz[i]
+            tab_stars[i, 7] = datam[i]
+
+        end
 
     end
 

@@ -5,14 +5,16 @@ using DataFrames
 
 function get_Rv_in_kpc()
 
-    # Load King sphere in Henon units
-    if (!HAS_MULTI_MASS) 
-        # Single mass
-        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
-    else 
-        # Multi-mass (half of mass m1, half of mass m2=2*m1)
-        namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
-    end
+    # # Load King sphere in Henon units
+    # if (!HAS_MULTI_MASS) 
+    #     # Single mass
+    #     namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*".csv"
+    # else 
+    #     # Multi-mass (half of mass m1, half of mass m2=2*m1)
+    #     namefile = path_dir*"data/IC/chc_king_ics_n_"*string(Npart)*"_multi_mass_1_2.csv"
+    # end
+
+    namefile = file_IC
     
     df = CSV.read(namefile, DataFrame, delim=',', header=false)
 
@@ -117,19 +119,3 @@ const V_HU_in_km_s = V_HU_in_kpc_Myr * 977.79222168
 # Cluster potential
 const d_host = d_kpc/R_HU_in_kpc # Distance to host's centre
 const mass_avg = _Mtot/Npart
-
-# Dark halo
-const Mvir = Mvir_Msun/(M_HU_in_Msun)
-const Rs = Rs_kpc/(R_HU_in_kpc)
-const g_c = log(1+c) - c/(1.0+c)
-
-# Bulge
-const M_bulge = M_bulge_Msun/(M_HU_in_Msun)
-const s_bulge = 0.5*(3.0-alpha_bulge)
-const rc_bulge = rc_bulge_kpc/(R_HU_in_kpc)
-const gamma_s = gamma(s_bulge)
-
-# Disk
-const M_disk = M_disk_Msun/(M_HU_in_Msun)
-const a_disk = a_disk_kpc/(R_HU_in_kpc)
-const b_disk = b_disk_kpc/(R_HU_in_kpc)

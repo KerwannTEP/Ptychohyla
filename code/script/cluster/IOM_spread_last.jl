@@ -53,6 +53,10 @@ const R_HU_in_kpc = Rv_kpc # Value of 1 HU length in kpc
 const G_in_kpc_MSun_Myr = 4.49851e-12
 const T_HU_in_Myr = sqrt(R_HU_in_kpc^3/(G_in_kpc_MSun_Myr*M_HU_in_Msun)) # Myr # T = sqrt(Rv^3/(G*M)) = 4.22 
 
+
+const V_HU_in_kpc_Myr = sqrt((G_in_kpc_MSun_Myr*M_HU_in_Msun)/R_HU_in_kpc)
+const V_HU_in_km_s = V_HU_in_kpc_Myr * 977.79222168
+
 const mass = 1.0/Npart
 const nb_neigh = 10
 
@@ -221,9 +225,14 @@ function get_data()
     var_E = var(tab_IOM_unbound[:, 1], corrected=true, mean=mean_E)
     sigma_E = sqrt(var_E)
 
+    println("<E> [unbound]  = ", mean_E)
+    
+
     mean_Lz = mean(tab_IOM_unbound[:, 2])
     var_Lz = var(tab_IOM_unbound[:, 2], corrected=true, mean=mean_Lz)
     sigma_Lz = sqrt(var_Lz)
+
+    println("<Lz> [unbound] = ", mean_Lz)
 
     tab_IOM_unbound[:, 1] = (tab_IOM_unbound[:, 1] .- mean_E) ./ sigma_E
     tab_IOM_unbound[:, 2] = (tab_IOM_unbound[:, 2] .- mean_Lz) ./ sigma_Lz 

@@ -30,7 +30,7 @@ function compute_IOM!(tab_stars::Array{Float64}, tab_IOM::Array{Float64})
     r = sqrt(x^2 + y^2 + z^2)
     R = sqrt(x^2 + y^2)
     v2 = vx^2 + vy^2 + vz^2
-    psi_xyz = psi_halo(r) + psi_disk(R, z) + psi_bulge(r) ##
+    psi_xyz = host.psi_host(R, z)
 
     # Kinetic energy 
     K = 0.5 * v2 

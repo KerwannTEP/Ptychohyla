@@ -19,7 +19,7 @@ function main()
     # Initialize 
 
     tab_stars[1] = d_host
-    tab_stars[5] = circular_velocity(d_host)
+    tab_stars[5] = host.circular_velocity(d_host)
 
     index = 0
 
@@ -34,8 +34,8 @@ function main()
             println("Progress = ", round(time/time_end, digits=4), " | Energy = ", tab_IOM[3])
         end
 
-        # integrate_one_leapfrog!(tab_stars)
-        integrate_one_yoshida!(tab_stars)
+        integrate_one_leapfrog!(tab_stars, host)
+        # integrate_one_yoshida!(tab_stars, host)
         time += dt
         index += 1
 
